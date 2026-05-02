@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-neon-cyan: #00F5FF;
+  --color-neon-purple: #BF00FF;
+  --color-neon-pink: #FF0080;
+  --color-neon-green: #00FF88;
+  --color-neon-red: #FF3131;
+  --color-neon-amber: #FFAA00;
+  --color-dark-bg: #050510;
+  --color-card-bg: #0D0D20;
+  
+  --font-orbitron: "Orbitron", sans-serif;
+  --font-rajdhani: "Rajdhani", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --shadow-neon-cyan: 0 0 15px rgba(0, 245, 255, 0.3);
+  --shadow-neon-purple: 0 0 15px rgba(191, 0, 255, 0.3);
+  --shadow-neon-pink: 0 0 15px rgba(255, 0, 128, 0.3);
+}
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-gray-200 font-rajdhani overflow-x-hidden antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-orbitron tracking-wider text-white;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card-bg/60 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)];
+  }
+
+  .neon-border {
+    @apply border border-neon-cyan/30 shadow-[0_0_15px_rgba(0,245,255,0.1)];
+  }
+  
+  .neon-border-purple {
+    @apply border border-neon-purple/30 shadow-[0_0_15px_rgba(191,0,255,0.1)];
+  }
+
+  .cyber-grid {
+    background-image: 
+      linear-gradient(rgba(0, 245, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 245, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .bg-glow-purple {
+    @apply absolute w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10;
+  }
+
+  .bg-glow-cyan {
+    @apply absolute w-[300px] h-[300px] bg-neon-cyan/5 rounded-full blur-[100px] -z-10;
+  }
+
+  .scanline {
+    @apply fixed inset-0 z-50 pointer-events-none opacity-[0.03];
+    background: linear-gradient(0deg, transparent 0%, rgba(0, 245, 255, 0.1) 50%, transparent 100%);
+    background-size: 100% 4px;
+    animation: scanline 10s linear infinite;
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
