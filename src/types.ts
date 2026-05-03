@@ -4,7 +4,6 @@ export interface Member {
   id: string;
   name: string;
   member_number: number;
-  status: 'active' | 'warning' | 'inactive';
   total_points: number;
   created_at?: string;
 }

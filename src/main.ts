@@ -229,10 +229,9 @@ function renderDashboard() {
       </div>
       <h1 class="text-5xl font-black italic tracking-tighter">CENTRAL MONITOR</h1>
     </header>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-      ${renderStatCard('Total Personnel', '...', 'bg-neon-cyan/10 text-neon-cyan', 'users')}
-      ${renderStatCard('Active Shift', '...', 'bg-neon-green/10 text-neon-green', 'shield-check')}
-      ${renderStatCard('Alert Status', '...', 'bg-neon-red/10 text-neon-red', 'layout-dashboard')}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      ${renderStatCard('Total Member', '...', 'bg-neon-cyan/10 text-neon-cyan', 'users')}
+      ${renderStatCard('Protocol Level', '...', 'bg-neon-green/10 text-neon-green', 'shield-check')}
     </div>
     <div class="glass-card p-10 rounded-3xl border-white/5 relative overflow-hidden">
       <div class="flex justify-between items-end mb-8">
@@ -261,7 +260,7 @@ function renderMembers() {
             <div class="w-2 h-2 rounded-full bg-neon-pink shadow-[0_0_8px_#FF0080]"></div>
             <p class="text-neon-pink text-[10px] font-black uppercase tracking-[0.3em]">Database v2.4</p>
           </div>
-          <h1 class="text-5xl font-black italic tracking-tighter">PERSONNEL DIRECTORY</h1>
+          <h1 class="text-5xl font-black italic tracking-tighter">MEMBER DIRECTORY</h1>
         </div>
         <button id="add-member-btn" class="bg-neon-pink text-white px-6 py-3 rounded-xl font-orbitron font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:shadow-[0_0_15px_#FF0080] transition-all">
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -435,7 +434,14 @@ function attachContentEvents() {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
       const rawNames = formData.get('names') as string;
-      const namesList = rawNames.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+      const namesList = rawNames.split('\n')
+        .map(n => n.trim())
+        .filter(n => n.length > 0)
+        .map(n => {
+          // Robust cleaning: remove leading "1.", "1.@", "@@", "@"
+          return n.replace(/^\d+[\.\@\s]*/, '').replace(/^@+/, '').trim();
+        })
+        .filter(n => n.length > 0);
 
       if (namesList.length === 0) return;
 
@@ -466,7 +472,6 @@ function attachContentEvents() {
           newMembers.push({
             name: uniqueName,
             member_number: lastMemberNumber,
-            status: 'active',
             total_points: 0
           });
         }
@@ -651,13 +656,11 @@ async function fetchMembers() {
         </div>
 
         <div class="flex justify-between items-center">
-          <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] ${
-            member.status === 'active' ? 'bg-neon-green/10 text-neon-green' : 'bg-neon-red/10 text-neon-red'
-          }">${member.status}</span>
-          <div class="text-right">
+          <div class="text-left">
             <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest mr-1">Points</span>
             <span class="text-sm font-black italic text-neon-cyan">${member.total_points}</span>
           </div>
+          <div class="text-[8px] font-black uppercase tracking-[0.2em] text-neon-green/60">Verified</div>
         </div>
       </div>
     `).join('');
@@ -772,12 +775,12 @@ function attachMobileEvents() {
 }
 
 async function fetchDashboardStats() {
-    const { data: members } = await supabase.from('members').select('status');
+    const { data: members } = await supabase.from('members').select('total_points');
     if (members) {
         const cards = document.querySelectorAll('.text-3xl');
         if (cards[0]) cards[0].textContent = members.length.toString();
-        if (cards[1]) cards[1].textContent = members.filter(m => m.status === 'active').length.toString();
-        if (cards[2]) cards[2].textContent = members.filter(m => m.status === 'warning').length.toString();
+        // Just show Gold+ count as "Protocol Level" high tier stat
+        if (cards[1]) cards[1].textContent = members.filter(m => m.total_points >= 100).length.toString();
     }
 }
 
