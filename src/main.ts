@@ -434,14 +434,24 @@ function attachContentEvents() {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
       const rawNames = formData.get('names') as string;
-      const namesList = rawNames.split('\n')
-        .map(n => n.trim())
-        .filter(n => n.length > 0)
-        .map(n => {
-          // Robust cleaning: remove leading "1.", "1.@", "@@", "@"
-          return n.replace(/^\d+[\.\@\s]*/, '').replace(/^@+/, '').trim();
-        })
-        .filter(n => n.length > 0);
+      
+      const namesList: string[] = [];
+      const lines = rawNames.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      
+      for (const line of lines) {
+        // If line contains multiple @ symbols, split it into multiple names
+        if ((line.match(/@/g) || []).length > 1) {
+          const parts = line.split('@').map(p => p.trim()).filter(p => p.length > 0);
+          for (const p of parts) {
+            const cleaned = p.replace(/^\d+(?:\.|\s)+/, '').trim();
+            if (cleaned) namesList.push(cleaned);
+          }
+        } else {
+          // Precise cleaning: remove leading digits followed by dot/space, then remove any leading @ symbols
+          const cleaned = line.replace(/^\d+(?:\.|\s|@)+/, '').replace(/^@+/, '').trim();
+          if (cleaned) namesList.push(cleaned);
+        }
+      }
 
       if (namesList.length === 0) return;
 
@@ -509,9 +519,21 @@ function attachContentEvents() {
         const activities = parseActivityBatch(data);
         let successCount = 0;
 
+        // Fetch all members to match by name
+        const { data: members } = await supabase.from('members').select('id, name, total_points');
+        const memberMap = new Map();
+        members?.forEach(m => memberMap.set(m.name.toLowerCase(), m));
+
         for (const act of activities) {
-          await logAudit('ACTIVITY_SYNC', `Processed @${act.username} on ${date}: +${act.points}pts (${act.detail})`);
-          successCount++;
+          const member = memberMap.get(act.username.toLowerCase());
+          if (member) {
+            const newPoints = (member.total_points || 0) + act.points;
+            await supabase.from('members').update({ total_points: newPoints }).eq('id', member.id);
+            await logAudit('ACTIVITY_SYNC', `Synced @${member.name}: +${act.points}pts [New Total: ${newPoints}] on ${date}`);
+            successCount++;
+          } else {
+            await logAudit('SYNC_WARNING', `Entry "@${act.username}" not found in personnel directory.`);
+          }
         }
         
         alert(`Sync Sequence Complete. Processed ${successCount} entries for cycle ${date}.`);
@@ -543,19 +565,20 @@ async function fetchLeaderboard() {
   const list = document.getElementById('leaderboard-list');
   if (list && data) {
     list.innerHTML = `
-      <table class="w-full text-left border-collapse">
-        <thead class="bg-white/5 text-[10px] uppercase font-black tracking-widest text-gray-500">
-          <tr>
-            <th class="p-6">Rank</th>
-            <th class="p-6">Personnel</th>
-            <th class="p-6">Points</th>
-            <th class="p-6 text-right">Level</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-white/5">
-          ${data.map((member, i) => `
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="p-6 font-black italic text-neon-cyan">#0${i + 1}</td>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[600px]">
+          <thead class="bg-white/5 text-[10px] uppercase font-black tracking-widest text-gray-500">
+            <tr>
+              <th class="p-6">Rank</th>
+              <th class="p-6">Personnel</th>
+              <th class="p-6">Points</th>
+              <th class="p-6 text-right">Level</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            ${data.map((member, i) => `
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="p-6 font-black italic text-neon-cyan">${(i + 1).toString().padStart(2, '0')}</td>
               <td class="p-6 font-bold uppercase text-sm">${member.name}</td>
               <td class="p-6 font-black italic text-white">${member.total_points}</td>
               <td class="p-6 text-right">
