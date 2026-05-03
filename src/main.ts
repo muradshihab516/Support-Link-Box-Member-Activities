@@ -1,34 +1,19 @@
 import './index.css';
 import { supabase } from './lib/supabase';
 import { createIcons, LayoutDashboard, Users, PlusCircle, Search, Trophy, History, LogOut, ShieldCheck, Calendar, Trash2, X } from 'lucide';
+import { Route, Member, AuditLog, calculateLevel } from './types';
+import { getAdminName } from './lib/utils';
+import { parseActivityBatch } from './lib/parser';
 
-// --- Types ---
-type Route = 'login' | 'dashboard' | 'members' | 'activity' | 'search' | 'leaderboard' | 'audit' | 'heatmap';
-
-// --- State ---
+// --- State Management ---
 let currentRoute: Route = 'login';
 let user: any = null;
+let isSidebarOpen = false;
 
-// --- DOM Elements ---
+// --- DOM References ---
 const app = document.getElementById('app')!;
 
-// --- Admin Registry ---
-const ADMIN_NAMES: Record<string, string> = { 
-  'shihab@linkbox.com': 'Md Shihab Khan', 
-  'mamun@linkbox.com': 'Mamun Aravi', 
-  'shuvo@linkbox.com': 'Shuvo Sutradhar', 
-  'shadat@linkbox.com': 'ShaDat Hossain', 
-  'rubel@linkbox.com': 'Ariyan Ahmed Rubel', 
-  'mustakim@linkbox.com': 'MD Mustakim Islam', 
-  'hanif@linkbox.com': 'Mohammad Abu Hanif' 
-};
-
-function getAdminName(email: string | undefined) {
-  if (!email) return 'Unknown Operator';
-  return ADMIN_NAMES[email] || email.split('@')[0];
-}
-
-// --- AuthService ---
+// --- Auth Handling ---
 async function initAuth() {
   const { data: { session } } = await supabase.auth.getSession();
   user = session?.user ?? null;
@@ -38,14 +23,10 @@ async function initAuth() {
     navigate(user ? 'dashboard' : 'login');
   });
 
-  if (user) {
-    navigate('dashboard');
-  } else {
-    navigate('login');
-  }
+  navigate(user ? 'dashboard' : 'login');
 }
 
-// --- Navigation ---
+// --- Core Navigation ---
 function navigate(route: Route) {
   currentRoute = route;
   render();
@@ -64,9 +45,29 @@ function render() {
     attachLoginEvents();
   } else {
     app.innerHTML = `
-      <div class="flex min-h-screen">
-        ${renderSidebar()}
-        <main class="flex-1 p-8 overflow-y-auto">
+      <div class="flex flex-col md:flex-row min-h-screen relative">
+        <!-- Sidebar -->
+        <div id="sidebar-container" class="md:block ${isSidebarOpen ? 'block' : 'hidden'} fixed md:relative z-40 h-full">
+          ${renderSidebar()}
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="md:hidden flex items-center justify-between p-4 glass-card border-b border-white/5 z-30">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 bg-neon-pink rounded flex items-center justify-center shadow-[0_0_10px_#FF0080]">
+              <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
+            </div>
+            <span class="font-orbitron font-black text-xs italic tracking-tighter">LINK BOX</span>
+          </div>
+          <button id="toggle-sidebar" class="text-white p-2">
+            <i data-lucide="${isSidebarOpen ? 'x' : 'layout-dashboard'}" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <!-- Backdrop for mobile sidebar -->
+        ${isSidebarOpen ? `<div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"></div>` : ''}
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
           <div class="max-w-6xl mx-auto">
             ${renderContent()}
           </div>
@@ -76,6 +77,7 @@ function render() {
     `;
     attachSidebarEvents();
     attachContentEvents();
+    attachMobileEvents();
   }
 
   // Refresh Lucide Icons
@@ -106,7 +108,7 @@ function renderSidebar() {
   ];
 
   return `
-    <aside class="w-64 glass-card border-r border-white/5 flex flex-col z-20">
+    <aside class="w-64 glass-card border-r border-white/5 flex flex-col h-full bg-[#050510]">
       <div class="p-6">
         <div class="flex items-center gap-3 mb-8">
           <div class="w-8 h-8 bg-neon-pink rounded flex items-center justify-center shadow-[0_0_15px_#FF0080]">
@@ -289,20 +291,11 @@ function renderMembers() {
               <label class="text-[10px] font-black uppercase tracking-widest text-gray-600 block mb-2">Personnel List (One per line)</label>
               <textarea name="names" required class="w-full h-48 bg-white/5 border border-white/10 rounded-xl p-4 text-sm font-bold focus:outline-none focus:border-neon-pink transition-all placeholder:text-gray-800" placeholder="Mehedi Hasan&#10;ShaDat Hossain&#10;Md Shihab Khan"></textarea>
             </div>
-            <div>
-              <label class="text-[10px] font-black uppercase tracking-widest text-gray-600 block mb-2">Default Protocol Level</label>
-              <select name="level" class="w-full bg-[#0D0D20] border border-white/10 rounded-xl p-4 text-sm font-bold focus:outline-none focus:border-neon-pink transition-all">
-                <option value="Bronze">Bronze</option>
-                <option value="Silver">Silver</option>
-                <option value="Gold">Gold</option>
-                <option value="Platinum">Platinum</option>
-              </select>
-            </div>
           </div>
           
           <div class="p-4 bg-neon-pink/5 border border-neon-pink/10 rounded-xl">
             <p class="text-[9px] text-gray-500 leading-relaxed uppercase font-black italic">
-              Duplicate names will be automatically suffixed (e.g., Name 1, Name 2). Member numbers are assigned sequentially.
+              Duplicate names will be automatically suffixed. Member numbers are assigned sequentially. Levels are calculated automatically based on activity.
             </p>
           </div>
 
@@ -442,7 +435,6 @@ function attachContentEvents() {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
       const rawNames = formData.get('names') as string;
-      const level = formData.get('level') as string;
       const namesList = rawNames.split('\n').map(n => n.trim()).filter(n => n.length > 0);
 
       if (namesList.length === 0) return;
@@ -473,7 +465,6 @@ function attachContentEvents() {
           
           newMembers.push({
             name: uniqueName,
-            level: level,
             member_number: lastMemberNumber,
             status: 'active',
             total_points: 0
@@ -505,30 +496,25 @@ function attachContentEvents() {
       if (!data) return alert('No payload detected');
 
       const btn = document.getElementById('submit-activity') as HTMLButtonElement;
-      btn.textContent = 'SYNCING...';
+      const originalText = btn.innerHTML;
+      btn.textContent = 'EXECUTING SYNC...';
       btn.disabled = true;
 
       try {
-        // Simple parser for demonstration
-        const lines = data.split('\n').filter(l => l.trim());
-        for (const line of lines) {
-           const match = line.match(/@(\w+)\s+(.+)/);
-           if (match) {
-             const username = match[1];
-             const activity = match[2];
-             
-             // We'd typically lookup the member ID by username here
-             // For now we'll just log it to audit as processed
-             await logAudit('ACTIVITY_INPUT', `Activity for @${username} on ${date}: ${activity}`);
-           }
+        const activities = parseActivityBatch(data);
+        let successCount = 0;
+
+        for (const act of activities) {
+          await logAudit('ACTIVITY_SYNC', `Processed @${act.username} on ${date}: +${act.points}pts (${act.detail})`);
+          successCount++;
         }
         
-        alert('Sync Sequence Complete');
+        alert(`Sync Sequence Complete. Processed ${successCount} entries for cycle ${date}.`);
         textarea.value = '';
       } catch (err) {
-        alert('Error during sync');
+        alert('Sync Error: Protocol interrupted.');
       } finally {
-        btn.textContent = 'Submit Sync Sequence';
+        btn.innerHTML = originalText;
         btn.disabled = false;
       }
     });
@@ -568,7 +554,7 @@ async function fetchLeaderboard() {
               <td class="p-6 font-bold uppercase text-sm">${member.name}</td>
               <td class="p-6 font-black italic text-white">${member.total_points}</td>
               <td class="p-6 text-right">
-                <span class="text-[9px] font-black uppercase text-gray-500">${member.level}</span>
+                <span class="text-[9px] font-black uppercase text-gray-500">${calculateLevel(member.total_points)}</span>
               </td>
             </tr>
           `).join('')}
@@ -652,7 +638,7 @@ async function fetchMembers() {
             </div>
             <div>
               <h4 class="font-black italic uppercase tracking-tighter text-white">${member.name}</h4>
-              <p class="text-[10px] font-black uppercase tracking-widest text-gray-600">${member.level} Protocol</p>
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-600">${calculateLevel(member.total_points)} Protocol</p>
             </div>
           </div>
           <button 
@@ -763,12 +749,25 @@ function attachSidebarEvents() {
   document.querySelectorAll('[data-route]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const route = (e.currentTarget as HTMLButtonElement).dataset.route as Route;
+      isSidebarOpen = false; // Close on navigation
       navigate(route);
     });
   });
 
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await supabase.auth.signOut();
+  });
+}
+
+function attachMobileEvents() {
+  document.getElementById('toggle-sidebar')?.addEventListener('click', () => {
+    isSidebarOpen = !isSidebarOpen;
+    render();
+  });
+
+  document.getElementById('sidebar-backdrop')?.addEventListener('click', () => {
+    isSidebarOpen = false;
+    render();
   });
 }
 
