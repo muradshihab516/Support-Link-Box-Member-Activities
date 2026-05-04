@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS members (
   name TEXT NOT NULL UNIQUE,
   member_number INTEGER NOT NULL UNIQUE,
   total_points INTEGER DEFAULT 0,
+  last_activity_date DATE,
+  current_streak INTEGER DEFAULT 0,
+  max_streak INTEGER DEFAULT 0,
+  total_syncs INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

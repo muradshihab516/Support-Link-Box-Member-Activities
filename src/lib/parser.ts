@@ -5,41 +5,37 @@ export interface ParsedActivity {
 }
 
 export function parseActivityBatch(data: string): ParsedActivity[] {
-  const lines = data.split('\n').filter(l => l.trim());
   const results: ParsedActivity[] = [];
-
-  for (const line of lines) {
-    // Skip clearly invalid lines or "No Post" markers
-    if (line.toLowerCase().includes('no post')) continue;
-
-    // Matches @ followed by a name (greedy until a known keyword or end of line)
-    // Supports unicode names, spaces, and varied statuses
-    const match = line.match(/@\s*(.+?)(?:\s+(post|no|pts|points|warning|inactive|active).*|$)/i);
-    if (match) {
-      const username = match[1].trim();
-      // Exclude generic status messages or common non-name terms
+  
+  // High-Quality Pattern:
+  // Starts with @ or a list number like 1.@ or 1. @
+  // Captures everything until the next @, a new list number, or a keyword like 'post'
+  const namePattern = /(?:@|\d+[\.\s]*@+)\s*([^@\n\r]+?)(?=(?:\s+\d+\.|\s+@|\s+post|\s+no|\s+points|\s+pts|\s+active|\n|\r|$))/gi;
+  
+  let m;
+  while ((m = namePattern.exec(data)) !== null) {
+    if (m[1]) {
+      const username = m[1].trim();
       if (username.toLowerCase().includes('no post') || username.length < 2) continue;
       
-      // If we matched a keyword, try to find the full detail for that line
-      const fullDetailMatch = line.slice(line.indexOf(match[0]) + match[0].length - (match[2]?.length || 0));
-      const activityStr = fullDetailMatch.toLowerCase();
+      // Find context (points) in the line containing this match
+      const startOfLine = data.lastIndexOf('\n', m.index) + 1;
+      const endOfLine = data.indexOf('\n', m.index);
+      const lineContext = data.substring(startOfLine, endOfLine === -1 ? data.length : endOfLine).toLowerCase();
 
       let points = 0;
-      if (activityStr.includes('post')) {
-        const numMatch = activityStr.match(/\d+/);
+      if (lineContext.includes('post')) {
+        const numMatch = lineContext.match(/\d+/);
         points = numMatch ? parseInt(numMatch[0]) : 1;
-      } else if (activityStr.length > 0 && !activityStr.includes('no')) {
-        // Any other non-"no" text counts as 1 point by default
+      } else if (!lineContext.includes('no post')) {
         points = 1;
       }
 
-      if (username) {
-        results.push({ 
-          username, 
-          points, 
-          detail: activityStr || 'Logged'
-        });
-      }
+      results.push({ 
+        username, 
+        points, 
+        detail: 'Dynamic Sync' 
+      });
     }
   }
   return results;

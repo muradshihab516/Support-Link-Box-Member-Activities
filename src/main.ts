@@ -1,6 +1,6 @@
 import './index.css';
 import { supabase } from './lib/supabase';
-import { createIcons, LayoutDashboard, Users, PlusCircle, Search, Trophy, History, LogOut, ShieldCheck, Calendar, Trash2, X } from 'lucide';
+import { createIcons, LayoutDashboard, Users, PlusCircle, Search, Trophy, History, LogOut, ShieldCheck, Calendar, Trash2, X, Copy, Check } from 'lucide';
 import { Route, Member, AuditLog, calculateLevel } from './types';
 import { getAdminName } from './lib/utils';
 import { parseActivityBatch } from './lib/parser';
@@ -9,6 +9,8 @@ import { parseActivityBatch } from './lib/parser';
 let currentRoute: Route = 'login';
 let user: any = null;
 let isSidebarOpen = false;
+let selectedMember: Member | null = null;
+let leaderboardTab: 'rankings' | 'inactivity' = 'rankings';
 
 // --- DOM References ---
 const app = document.getElementById('app')!;
@@ -29,6 +31,7 @@ async function initAuth() {
 // --- Core Navigation ---
 function navigate(route: Route) {
   currentRoute = route;
+  selectedMember = null;
   render();
 }
 
@@ -69,7 +72,7 @@ function render() {
 
         <main class="flex-1 p-4 md:p-8 overflow-y-auto">
           <div class="max-w-6xl mx-auto">
-            ${renderContent()}
+            ${selectedMember ? renderMemberDetail(selectedMember) : renderContent()}
           </div>
         </main>
       </div>
@@ -78,6 +81,7 @@ function render() {
     attachSidebarEvents();
     attachContentEvents();
     attachMobileEvents();
+    if (selectedMember) attachMemberDetailEvents();
   }
 
   // Refresh Lucide Icons
@@ -94,6 +98,98 @@ function render() {
       Calendar
     }
   });
+}
+
+function renderMemberDetail(member: Member) {
+  const lastSync = member.last_activity_date ? new Date(member.last_activity_date) : null;
+  const daysSinceSync = lastSync ? Math.floor((new Date().getTime() - lastSync.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A';
+  
+  return `
+    <div class="animate-in fade-in slide-in-from-bottom-4">
+      <button id="back-to-directory" class="flex items-center gap-2 text-neon-cyan/60 hover:text-neon-cyan font-black text-xs uppercase tracking-widest mb-8 transition-all">
+        <i data-lucide="x" class="w-4 h-4"></i>
+        Close Protocol
+      </button>
+
+      <div class="glass-card mb-8 p-1 rounded-3xl border-white/5 relative overflow-hidden">
+        <div class="p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+           <div class="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center border-2 border-white/10 relative">
+             <i data-lucide="users" class="w-12 h-12 text-neon-cyan opacity-40"></i>
+             <div class="absolute -bottom-2 bg-neon-pink px-3 py-1 rounded-full text-[10px] font-black italic shadow-[0_0_10px_#FF0080]">#${member.member_number}</div>
+           </div>
+           <div class="text-center md:text-left flex-1">
+             <h1 class="text-4xl md:text-5xl font-black italic tracking-tighter text-white uppercase mb-4 line-clamp-2">${member.name}</h1>
+             <div class="flex flex-wrap justify-center md:justify-start gap-3">
+               <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase text-neon-cyan tracking-widest">${calculateLevel(member.total_points)} Protocol</span>
+               <span class="px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-lg text-[10px] font-black uppercase text-neon-green tracking-widest">Active Verified</span>
+               <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase text-gray-400 tracking-widest">Last Activity: ${daysSinceSync} Days Ago</span>
+             </div>
+           </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="glass-card p-8 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Total Contributions</span>
+          <span class="text-4xl font-black italic text-white">${member.total_syncs || 0}</span>
+          <div class="text-[9px] font-bold text-gray-600 mt-2 uppercase">Verified Sync Operations</div>
+          <div class="w-12 h-1 bg-neon-cyan mt-4 rounded-full shadow-[0_0_8px_#00FFFF]"></div>
+        </div>
+        <div class="glass-card p-8 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Current Streak</span>
+          <span class="text-4xl font-black italic text-neon-pink">${member.current_streak || 0} Cycles</span>
+          <div class="text-[9px] font-bold text-gray-600 mt-2 uppercase">Consecutive Active Days</div>
+          <div class="w-12 h-1 bg-neon-pink mt-4 rounded-full shadow-[0_0_8px_#FF0080]"></div>
+        </div>
+        <div class="glass-card p-8 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Peak Stability</span>
+          <span class="text-4xl font-black italic text-neon-green">${member.max_streak || 0} Max</span>
+          <div class="text-[9px] font-bold text-gray-600 mt-2 uppercase">All-Time Max Streak</div>
+          <div class="w-12 h-1 bg-neon-green mt-4 rounded-full shadow-[0_0_10px_#39FF14]"></div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 md:p-10 rounded-2xl border-white/5">
+        <h3 class="font-orbitron font-black text-xs uppercase tracking-[0.3em] mb-6 text-gray-500">Security Access Logs</h3>
+        <div id="member-logs" class="space-y-4">
+           <p class="text-xs font-bold text-gray-600 italic">Accessing encrypted archives...</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function attachMemberDetailEvents() {
+  document.getElementById('back-to-directory')?.addEventListener('click', () => {
+    selectedMember = null;
+    render();
+  });
+
+  if (selectedMember) {
+     const { data: logs } = await supabase
+       .from('audit_trail')
+       .select('*')
+       .ilike('description', `%@${selectedMember.name}%`)
+       .order('timestamp', { ascending: false })
+       .limit(10);
+     
+     const logContainer = document.getElementById('member-logs');
+     if (logContainer) {
+       if (logs && logs.length > 0) {
+         logContainer.innerHTML = logs.map(log => `
+           <div class="flex gap-4 items-start p-4 hover:bg-white/5 rounded-xl transition-all group">
+             <div class="w-2 h-2 rounded-full bg-neon-cyan mt-1 shadow-[0_0_5px_#00FFFF]"></div>
+             <div>
+               <p class="text-sm font-bold text-gray-300 leading-snug">${log.description}</p>
+               <p class="text-[9px] font-black uppercase text-gray-600 mt-1 tracking-widest">${new Date(log.timestamp).toLocaleString()} // Operator: ${log.admin_name}</p>
+             </div>
+           </div>
+         `).join('');
+       } else {
+         logContainer.innerHTML = '<p class="text-xs font-bold text-gray-600 italic">No recent log entries for this personnel.</p>';
+       }
+     }
+  }
 }
 
 function renderSidebar() {
@@ -368,17 +464,90 @@ function renderSearch() {
   `;
 }
 
+function generateInactivityNotice(members: Member[], days: number, type: 'warning' | 'severe' | 'final' = 'warning', limit: number = 30) {
+  const inactive = members.filter(m => {
+    if (!m.last_activity_date) return true;
+    const diff = Math.floor((new Date().getTime() - new Date(m.last_activity_date).getTime()) / (1000 * 60 * 60 * 24));
+    return diff >= days;
+  }).sort((a,b) => {
+    const d1 = a.last_activity_date ? Math.floor((new Date().getTime() - new Date(a.last_activity_date).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+    const d2 = b.last_activity_date ? Math.floor((new Date().getTime() - new Date(b.last_activity_date).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+    return d2 - d1;
+  });
+
+  const date = new Date();
+  const dateStr = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear().toString().slice(-2)}`;
+  
+  const headers = {
+    warning: {
+      title: '⚠️ Inactivity Warning ⚠️',
+      desc: `আমরা লক্ষ করেছি নিচের মেম্বাররা ${days} দিনের বেশি\nসময় ধরে গ্রুপে ইনেক্টিভ আছেন।\n\nঅনুগ্রহ করে যত দ্রুত সম্ভব এক্টিভ হন অথবা\nকোনো সমস্যা থাকলে এডমিনের সাথে যোগাযোগ করুন।\nঅন্যথায় আপনাদের গ্রুপ থেকে রিমুভ করা হবে।`
+    },
+    severe: {
+      title: '❗ Critical Inactivity Alert ❗',
+      desc: `সতর্কতা! নিচের মেম্বাররা গত ${days} দিন ধরে সম্পূর্ণ ইনেক্টিভ।\nআপনাদের শেষ সুযোগ দেওয়া হচ্ছে। ২৪ ঘণ্টার মধ্যে এক্টিভ না হলে\nস্থায়ীভাবে রিমুভ করা হবে।`
+    },
+    final: {
+      title: '🚫 Final Removal Notice 🚫',
+      desc: `চূড়ান্ত নোটিশ! নিচের মেম্বাররা ${days} দিন ধরে ইনেক্টিভ থাকায়\nতাদের লিস্ট করা হয়েছে। আজই আপনাদের আইডি গ্রুপ থেকে ক্লিনিং\nকরা হবে। কোনো ওজর আপত্তি গ্রহণযোগ্য নয়।`
+    }
+  };
+
+  const selectedHeader = headers[type];
+
+  const list = inactive.slice(0, limit).map((m, i) => {
+    const diff = m.last_activity_date ? Math.floor((new Date().getTime() - new Date(m.last_activity_date).getTime()) / (1000 * 60 * 60 * 24)) : '৭+';
+    const numIcons = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+    const displayNum = (i < 10) ? numIcons[i] : `${i + 1}️⃣`;
+    return `${displayNum} @${m.name} ➤ (${diff} দিন ইনেক্টিভ)`;
+  }).join('\n');
+
+  return `${selectedHeader.title}
+
+প্রিয় গ্রুপ মেম্বারগণ,
+
+${selectedHeader.desc}
+
+😴 Inactive Members 👇
+〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
+
+${list || 'None detected.'}
+
+〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
+📅 তারিখ: ${dateStr}
+
+✍️ Support Link Box Admin Team`;
+}
+
 function renderLeaderboard() {
   return `
     <header class="mb-12">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF]"></div>
-        <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em]">Global Ranking</p>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF]"></div>
+            <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em]">Protocol Status</p>
+          </div>
+          <h1 class="text-5xl font-black italic tracking-tighter">STATISTICS</h1>
+        </div>
+        
+        <div class="flex bg-white/5 p-1 rounded-xl border border-white/10 self-start">
+          <button 
+            data-tab="rankings"
+            class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${leaderboardTab === 'rankings' ? 'bg-neon-cyan text-black shadow-[0_0_15px_#00F5FF]' : 'text-gray-500 hover:text-gray-300'}"
+          >Rankings</button>
+          <button 
+            data-tab="inactivity"
+            class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${leaderboardTab === 'inactivity' ? 'bg-neon-pink text-white shadow-[0_0_15px_#FF0080]' : 'text-gray-500 hover:text-gray-300'}"
+          >Inactivity</button>
+        </div>
       </div>
-      <h1 class="text-5xl font-black italic tracking-tighter">LEADERBOARD</h1>
     </header>
-    <div id="leaderboard-list" class="glass-card rounded-3xl border-white/5 overflow-hidden">
-      <div class="p-10 text-center text-gray-600 italic">Calculating standings...</div>
+
+    <div id="leaderboard-list">
+      <div class="glass-card rounded-3xl border-white/5 overflow-hidden">
+        <div class="p-10 text-center text-gray-600 italic">Syncing with mainframe...</div>
+      </div>
     </div>
   `;
 }
@@ -436,21 +605,19 @@ function attachContentEvents() {
       const rawNames = formData.get('names') as string;
       
       const namesList: string[] = [];
-      const lines = rawNames.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      
-      for (const line of lines) {
-        // If line contains multiple @ symbols, split it into multiple names
-        if ((line.match(/@/g) || []).length > 1) {
-          const parts = line.split('@').map(p => p.trim()).filter(p => p.length > 0);
-          for (const p of parts) {
-            const cleaned = p.replace(/^\d+(?:\.|\s)+/, '').trim();
-            if (cleaned) namesList.push(cleaned);
+      const namePattern = /(?:@|\d+[\.\s]*@+)\s*([^@\n\r]+?)(?=(?:\s+\d+\.|\s+@|\n|\r|$))/gi;
+      let m;
+      while ((m = namePattern.exec(rawNames)) !== null) {
+          if (m[1]) {
+              const cleaned = m[1].trim();
+              if (cleaned && cleaned.toLowerCase() !== 'no post') {
+                  namesList.push(cleaned);
+              }
           }
-        } else {
-          // Precise cleaning: remove leading digits followed by dot/space, then remove any leading @ symbols
-          const cleaned = line.replace(/^\d+(?:\.|\s|@)+/, '').replace(/^@+/, '').trim();
-          if (cleaned) namesList.push(cleaned);
-        }
+      }
+
+      if (namesList.length === 0) {
+        namesList.push(...rawNames.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l.toLowerCase() !== 'no post'));
       }
 
       if (namesList.length === 0) return;
@@ -466,33 +633,42 @@ function attachContentEvents() {
         let lastMemberNumber = Math.max(...(existingMembers?.map(m => m.member_number) || [0]), 0);
 
         const newMembers = [];
+        const skippedNames = [];
+
         for (const rawName of namesList) {
-          let uniqueName = rawName;
-          let counter = 1;
-          
-          // Deduplication Logic
-          while (existingNames.has(uniqueName.toLowerCase())) {
-            uniqueName = `${rawName} ${counter}`;
-            counter++;
+          if (existingNames.has(rawName.toLowerCase())) {
+            skippedNames.push(rawName);
+            continue;
           }
           
-          existingNames.add(uniqueName.toLowerCase());
+          existingNames.add(rawName.toLowerCase());
           lastMemberNumber++;
           
           newMembers.push({
-            name: uniqueName,
+            name: rawName,
             member_number: lastMemberNumber,
-            total_points: 0
+            total_points: 0,
+            current_streak: 0,
+            max_streak: 0,
+            total_syncs: 0
           });
         }
 
-        const { error } = await supabase.from('members').insert(newMembers);
-        if (error) throw error;
+        if (newMembers.length > 0) {
+          const { error } = await supabase.from('members').insert(newMembers);
+          if (error) throw error;
+          await logAudit('MEMBER_BATCH_REGISTER', `Registered ${newMembers.length} personnel. Skiped ${skippedNames.length} duplicates.`);
+        }
 
         document.getElementById('member-modal')?.classList.add('hidden');
-        await logAudit('MEMBER_BATCH_REGISTER', `Registered ${newMembers.length} personnel. Entities: ${newMembers.map(m => m.name).join(', ')}`);
         fetchMembers();
         form.reset();
+        
+        if (skippedNames.length > 0) {
+          alert(`Success: Registered ${newMembers.length} members.\nSkipped ${skippedNames.length} duplicates: ${skippedNames.slice(0, 3).join(', ')}${skippedNames.length > 3 ? '...' : ''}`);
+        } else {
+          alert(`Success: Sequential registration of ${newMembers.length} personnel complete.`);
+        }
       } catch (error: any) {
         alert('Batch Registration Failed: ' + error.message);
       } finally {
@@ -520,7 +696,7 @@ function attachContentEvents() {
         let successCount = 0;
 
         // Fetch all members to match by name
-        const { data: members } = await supabase.from('members').select('id, name, total_points');
+        const { data: members } = await supabase.from('members').select('*');
         const memberMap = new Map();
         members?.forEach(m => memberMap.set(m.name.toLowerCase(), m));
 
@@ -528,8 +704,37 @@ function attachContentEvents() {
           const member = memberMap.get(act.username.toLowerCase());
           if (member) {
             const newPoints = (member.total_points || 0) + act.points;
-            await supabase.from('members').update({ total_points: newPoints }).eq('id', member.id);
-            await logAudit('ACTIVITY_SYNC', `Synced @${member.name}: +${act.points}pts [New Total: ${newPoints}] on ${date}`);
+            const totalSyncs = (member.total_syncs || 0) + 1;
+            
+            // Streak Logic
+            let currentStreak = member.current_streak || 0;
+            const lastDate = member.last_activity_date ? new Date(member.last_activity_date) : null;
+            const syncDate = new Date(date);
+            
+            if (lastDate) {
+              const diffTime = Math.abs(syncDate.getTime() - lastDate.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              
+              if (diffDays === 1) {
+                currentStreak += 1;
+              } else if (diffDays > 1) {
+                currentStreak = 1;
+              }
+            } else {
+              currentStreak = 1;
+            }
+
+            const maxStreak = Math.max(member.max_streak || 0, currentStreak);
+
+            await supabase.from('members').update({ 
+               total_points: newPoints,
+               total_syncs: totalSyncs,
+               last_activity_date: date,
+               current_streak: currentStreak,
+               max_streak: maxStreak
+            }).eq('id', member.id);
+
+            await logAudit('ACTIVITY_SYNC', `Synced @${member.name}: +${act.points}pts [Streak: ${currentStreak}] on ${date}`);
             successCount++;
           } else {
             await logAudit('SYNC_WARNING', `Entry "@${act.username}" not found in personnel directory.`);
@@ -561,34 +766,175 @@ function attachContentEvents() {
 }
 
 async function fetchLeaderboard() {
-  const { data } = await supabase.from('members').select('*').order('total_points', { ascending: false }).limit(10);
   const list = document.getElementById('leaderboard-list');
-  if (list && data) {
-    list.innerHTML = `
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[600px]">
-          <thead class="bg-white/5 text-[10px] uppercase font-black tracking-widest text-gray-500">
-            <tr>
-              <th class="p-6">Rank</th>
-              <th class="p-6">Personnel</th>
-              <th class="p-6">Points</th>
-              <th class="p-6 text-right">Level</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5">
-            ${data.map((member, i) => `
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="p-6 font-black italic text-neon-cyan">${(i + 1).toString().padStart(2, '0')}</td>
-              <td class="p-6 font-bold uppercase text-sm">${member.name}</td>
-              <td class="p-6 font-black italic text-white">${member.total_points}</td>
-              <td class="p-6 text-right">
-                <span class="text-[9px] font-black uppercase text-gray-500">${calculateLevel(member.total_points)}</span>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+  if (!list) return;
+
+  // Add click listeners to tabs
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      leaderboardTab = (e.currentTarget as HTMLButtonElement).dataset.tab as 'rankings' | 'inactivity';
+      render();
+    });
+  });
+
+  if (leaderboardTab === 'rankings') {
+    const { data } = await supabase.from('members').select('*').order('total_points', { ascending: false }).limit(20);
+    if (data) {
+      list.innerHTML = `
+        <div class="glass-card rounded-3xl border-white/5 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[600px]">
+              <thead class="bg-white/5 text-[10px] uppercase font-black tracking-widest text-gray-500">
+                <tr>
+                  <th class="p-6">Rank</th>
+                  <th class="p-6">Personnel</th>
+                  <th class="p-6">Points</th>
+                  <th class="p-6 text-right">Protocol Level</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                ${data.map((member, i) => `
+                  <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-6 font-black italic text-neon-cyan">${(i + 1).toString().padStart(2, '0')}</td>
+                    <td class="p-6 font-bold uppercase text-sm">${member.name}</td>
+                    <td class="p-6 font-black italic text-white">${member.total_points}</td>
+                    <td class="p-6 text-right">
+                      <span class="px-2 py-1 bg-white/5 rounded text-[9px] font-black uppercase text-gray-400">${calculateLevel(member.total_points)}</span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    // Inactivity Tool
+    const { data: allMembers } = await supabase.from('members').select('*').order('last_activity_date', { ascending: true });
+    
+    if (allMembers) {
+      const defaultDays = 7;
+      const notice = generateInactivityNotice(allMembers, defaultDays);
+
+      list.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
+          <div class="space-y-6">
+            <div class="glass-card p-8 rounded-2xl border-white/5">
+              <h3 class="text-neon-pink text-[10px] font-black uppercase tracking-widest mb-6">Parameter Configuration</h3>
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Notice Type</label>
+                    <select id="notice-type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-neon-pink outline-none transition-all font-bold text-xs">
+                      <option value="warning" class="bg-[#050510]">General Warning</option>
+                      <option value="severe" class="bg-[#050510]">Severe Alert</option>
+                      <option value="final" class="bg-[#050510]">Removal Notice</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Threshold (Days)</label>
+                    <select id="inactivity-days" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-neon-pink outline-none transition-all font-bold text-xs">
+                      <option value="3" class="bg-[#050510]">3 Days</option>
+                      <option value="5" class="bg-[#050510]">5 Days</option>
+                      <option value="7" selected class="bg-[#050510]">7 Days</option>
+                      <option value="10" class="bg-[#050510]">10 Days</option>
+                      <option value="15" class="bg-[#050510]">15 Days</option>
+                      <option value="30" class="bg-[#050510]">30 Days</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Display Limit</label>
+                  <select id="list-limit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-neon-pink outline-none transition-all font-bold text-xs">
+                    <option value="10" class="bg-[#050510]">Top 10 Only</option>
+                    <option value="20" selected class="bg-[#050510]">Top 20 Only</option>
+                    <option value="30" class="bg-[#050510]">Top 30 Only</option>
+                    <option value="50" class="bg-[#050510]">Top 50 Only</option>
+                    <option value="100" class="bg-[#050510]">Include All Inactive</option>
+                  </select>
+                </div>
+
+                <button id="generate-notice-btn" class="w-full py-4 bg-neon-pink text-white rounded-xl font-black uppercase text-xs tracking-widest hover:shadow-[0_0_20px_#FF0080] transition-all">
+                  Synchronize & Generate
+                </button>
+              </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl border-white/5">
+              <h3 class="text-neon-cyan text-[10px] font-black uppercase tracking-widest mb-6">Status Overview</h3>
+              <div class="space-y-4" id="inactivity-stats">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card p-8 rounded-2xl border-neon-pink/20 relative">
+            <div class="absolute top-4 right-4 flex gap-2">
+              <button id="copy-notice-btn" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-neon-cyan flex items-center gap-2 border border-white/10 transition-all">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                Copy To Clipboard
+              </button>
+            </div>
+            <h3 class="text-white text-[10px] font-black uppercase tracking-widest mb-6 border-l-2 border-neon-pink pl-4">Formatted Warning Notice</h3>
+            <textarea id="notice-output" readonly class="w-full h-[500px] bg-transparent border-none outline-none text-gray-400 font-mono text-xs leading-relaxed resize-none p-2 scrollbar-hide">${notice}</textarea>
+          </div>
+        </div>
+      `;
+
+      createIcons({ icons: { Trophy, History, Search, PlusCircle, Users, LayoutDashboard, Copy, Check } }); 
+
+      const daysSelect = document.getElementById('inactivity-days') as HTMLSelectElement;
+      const typeSelect = document.getElementById('notice-type') as HTMLSelectElement;
+      const limitSelect = document.getElementById('list-limit') as HTMLSelectElement;
+      const textarea = document.getElementById('notice-output') as HTMLTextAreaElement;
+      const generateBtn = document.getElementById('generate-notice-btn');
+      const copyBtn = document.getElementById('copy-notice-btn');
+      const statsContainer = document.getElementById('inactivity-stats');
+
+      const updateStats = (days: number) => {
+        const inactive = allMembers.filter(m => {
+          if (!m.last_activity_date) return true;
+          const diff = Math.floor((new Date().getTime() - new Date(m.last_activity_date).getTime()) / (1000 * 60 * 60 * 24));
+          return diff >= days;
+        });
+
+        if (statsContainer) {
+          statsContainer.innerHTML = `
+            <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl">
+              <span class="text-[10px] font-bold text-gray-500 uppercase">Inactive Personnel</span>
+              <span class="text-xl font-black text-neon-pink italic">${inactive.length} Units</span>
+            </div>
+            <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl">
+              <span class="text-[10px] font-bold text-gray-500 uppercase">Alert Severity</span>
+              <span class="text-[10px] font-black text-neon-red uppercase tracking-widest font-orbitron">${inactive.length > 5 ? 'High Risk' : 'Nominal'}</span>
+            </div>
+          `;
+        }
+      };
+
+      updateStats(defaultDays);
+
+      generateBtn?.addEventListener('click', () => {
+        const days = parseInt(daysSelect.value);
+        const type = typeSelect.value as any;
+        const limit = parseInt(limitSelect.value);
+        textarea.value = generateInactivityNotice(allMembers, days, type, limit);
+        updateStats(days);
+      });
+
+      copyBtn?.addEventListener('click', () => {
+        textarea.select();
+        document.execCommand('copy');
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copied!';
+        createIcons({ icons: { Check } });
+        setTimeout(() => {
+          copyBtn.innerHTML = originalHTML;
+          createIcons({ icons: { Copy } });
+        }, 2000);
+      });
+    }
   }
 }
 
@@ -656,8 +1002,9 @@ async function fetchMembers() {
   const list = document.getElementById('members-list');
   if (list && data) {
     list.innerHTML = data.map(member => `
-      <div class="glass-card p-6 rounded-2xl border-white/5 hover:border-white/20 transition-all group overflow-hidden relative">
+      <div class="glass-card p-6 rounded-2xl border-white/5 hover:border-neon-cyan/30 transition-all group overflow-hidden relative cursor-pointer member-card" data-member-id="${member.id}">
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-neon-cyan/5 rounded-full blur-3xl group-hover:bg-neon-cyan/10 transition-all"></div>
+        <div class="w-1 h-32 bg-neon-cyan absolute left-0 top-1/2 -translate-y-1/2 scale-y-0 group-hover:scale-y-75 transition-transform origin-center"></div>
         
         <div class="flex justify-between items-start mb-6">
           <div class="flex items-center gap-4">
@@ -665,14 +1012,15 @@ async function fetchMembers() {
               #${member.member_number}
             </div>
             <div>
-              <h4 class="font-black italic uppercase tracking-tighter text-white">${member.name}</h4>
+              <h4 class="font-black italic uppercase tracking-tighter text-white line-clamp-1">${member.name}</h4>
               <p class="text-[10px] font-black uppercase tracking-widest text-gray-600">${calculateLevel(member.total_points)} Protocol</p>
             </div>
           </div>
           <button 
             data-delete-member="${member.id}"
             data-member-name="${member.name}"
-            class="opacity-0 group-hover:opacity-100 p-2 text-gray-700 hover:text-neon-red transition-all"
+            class="opacity-0 group-hover:opacity-100 p-2 text-gray-700 hover:text-neon-red transition-all relative z-10"
+            onclick="event.stopPropagation()"
           >
             <i data-lucide="trash-2" class="w-4 h-4"></i>
           </button>
@@ -687,6 +1035,18 @@ async function fetchMembers() {
         </div>
       </div>
     `).join('');
+
+    // Member details click
+    list.querySelectorAll('.member-card').forEach(card => {
+       card.addEventListener('click', () => {
+          const id = (card as HTMLElement).dataset.memberId;
+          const member = data.find(m => m.id === id);
+          if (member) {
+             selectedMember = member;
+             render();
+          }
+       });
+    });
 
     list.querySelectorAll('[data-delete-member]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -714,11 +1074,22 @@ async function performSearch(query: string) {
     const { data } = await supabase.from('members').select('*').ilike('name', `%${query}%`).limit(5);
     if (data) {
         results.innerHTML = data.map(m => `
-            <div class="glass-card p-4 rounded-xl border-white/5 flex justify-between items-center">
+            <div class="glass-card p-4 rounded-xl border-white/5 flex justify-between items-center cursor-pointer hover:border-neon-cyan/40 transition-all search-result-item" data-id="${m.id}">
                 <span class="font-black italic uppercase text-sm">${m.name}</span>
                 <span class="text-[10px] font-black uppercase text-neon-cyan">${m.total_points} PTS</span>
             </div>
         `).join('');
+
+        results.querySelectorAll('.search-result-item').forEach(item => {
+           item.addEventListener('click', () => {
+              const id = (item as HTMLElement).dataset.id;
+              const member = data.find(m => m.id === id);
+              if (member) {
+                 selectedMember = member;
+                 render();
+              }
+           });
+        });
     }
 }
 

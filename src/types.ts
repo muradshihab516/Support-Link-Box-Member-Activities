@@ -6,6 +6,10 @@ export interface Member {
   member_number: number;
   total_points: number;
   created_at?: string;
+  last_activity_date?: string;
+  current_streak: number;
+  max_streak: number;
+  total_syncs: number;
 }
 
 export function calculateLevel(points: number): string {
