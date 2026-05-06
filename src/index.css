@@ -22,7 +22,8 @@
 
 @layer base {
   body {
-    @apply bg-dark-bg text-gray-200 font-rajdhani overflow-x-hidden antialiased;
+    @apply text-gray-200 font-rajdhani overflow-x-hidden antialiased bg-[#050510];
+    transition: background-color 1s ease;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -32,41 +33,105 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card-bg/60 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)];
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.5)];
+    transition: all 0.3s ease;
   }
 
-  .neon-border {
-    @apply border border-neon-cyan/30 shadow-[0_0_15px_rgba(0,245,255,0.1)];
+  .glass-card:hover {
+    @apply bg-white/[0.06] border-white/10;
   }
-  
-  .neon-border-purple {
-    @apply border border-neon-purple/30 shadow-[0_0_15px_rgba(191,0,255,0.1)];
-  }
-
-  .cyber-grid {
-    background-image: 
-      linear-gradient(rgba(0, 245, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 245, 255, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-
-  .bg-glow-purple {
-    @apply absolute w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10;
-  }
-
-  .bg-glow-cyan {
-    @apply absolute w-[300px] h-[300px] bg-neon-cyan/5 rounded-full blur-[100px] -z-10;
-  }
-
-  .scanline {
-    @apply fixed inset-0 z-50 pointer-events-none opacity-[0.03];
-    background: linear-gradient(0deg, transparent 0%, rgba(0, 245, 255, 0.1) 50%, transparent 100%);
-    background-size: 100% 4px;
-    animation: scanline 10s linear infinite;
-  }
+/* ... existing components ... */
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+/* --- Theme Background Animations --- */
+.theme-bg-layer {
+  @apply fixed inset-0 -z-10 pointer-events-none;
+}
+
+.firefly {
+  @apply absolute rounded-full;
+  background: radial-gradient(circle, var(--color-neon-cyan) 0%, transparent 70%);
+  box-shadow: 0 0 10px 2px var(--color-neon-cyan);
+  animation: move-firefly linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes move-firefly {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  25% { opacity: 0.8; }
+  50% { transform: translate(100px, -50px) scale(1.2); }
+  75% { opacity: 0.8; }
+  100% { transform: translate(200px, -100px) scale(0.5); opacity: 0; }
+}
+
+.spark {
+  @apply absolute rounded-full bottom-[-20px];
+  background: radial-gradient(circle, var(--color-neon-pink) 0%, transparent 70%);
+  box-shadow: 0 0 10px 2px var(--color-neon-pink);
+  animation: rise-spark ease-in infinite;
+}
+
+@keyframes rise-spark {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-110vh) scale(0); opacity: 0; }
+}
+
+.cloud {
+  @apply absolute bg-white/5 blur-[80px] rounded-full;
+  animation: drift linear infinite;
+}
+
+@keyframes drift {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(200vw); }
+}
+
+@keyframes wind-sway {
+  0%, 100% { transform: rotate(-1deg) translateX(0); }
+  50% { transform: rotate(1deg) translateX(2px); }
+}
+
+.windy-sway {
+  animation: wind-sway 3s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+.wind-line {
+  @apply absolute h-[1px] bg-white/10;
+  animation: wind-move linear infinite;
+}
+
+@keyframes wind-move {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(200vw); }
+}
+
+/* Theme Bases */
+.royal-gold { 
+  background: radial-gradient(circle at 50% 50%, #1a1500, #050510) !important; 
+}
+.fireflies { 
+  background: radial-gradient(circle at 50% 50%, #001a0a, #050510) !important; 
+}
+.inferno { 
+  background: radial-gradient(circle at 50% 100%, #1a0500, #050510) !important; 
+}
+.sky-breeze { 
+  background: linear-gradient(to bottom, #001f3f, #000000) !important; 
+}
+.midnight-glow {
+  background: radial-gradient(circle at 50% 50%, #0a001a, #050510) !important;
+}
+
+/* Shimmer for Royal */
+.shimmer {
+  @apply absolute inset-0 opacity-10;
+  background: linear-gradient(45deg, transparent 45%, rgba(212, 175, 55, 0.4) 50%, transparent 55%);
+  background-size: 200% 200%;
+  animation: shimmer-anim 5s linear infinite;
+}
+
+@keyframes shimmer-anim {
+  0% { background-position: -200% -200%; }
+  100% { background-position: 200% 200%; }
 }
