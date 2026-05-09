@@ -25,8 +25,8 @@ export function parseActivityBatch(data: string): ParsedActivity[] {
 
       let points = 0;
       if (lineContext.includes('post')) {
-        const numMatch = lineContext.match(/\d+/);
-        points = numMatch ? parseInt(numMatch[0]) : 1;
+        const numMatch = lineContext.match(/post\s*(\d+)/i);
+        points = numMatch ? parseInt(numMatch[1]) : 1;
       } else if (!lineContext.includes('no post')) {
         points = 1;
       }

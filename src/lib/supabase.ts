@@ -1,10 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// MAIN APP SUPABASE (Configurable via ENV) - MUST set these in environment variables for the main project
+const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
+const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment.');
-}
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+// NOTICE BOX SUPABASE (Dedicated project - ALWAYS hardcoded as per user instructions)
+const NOTICE_BOX_URL = "https://xzgozwylnfpcicdipjhw.supabase.co";
+const NOTICE_BOX_KEY = "sb_publishable_mjndYPAxtmjjulEtV3brkA_CPhU4BA_";
+
+export const noticeBoxSupabase = createClient(NOTICE_BOX_URL, NOTICE_BOX_KEY);

@@ -1,4 +1,5 @@
 export const ADMIN_NAMES: Record<string, string> = { 
+  'muradshihab516@gmail.com': 'Murad Shihab',
   'shihab@linkbox.com': 'Md Shihab Khan', 
   'mamun@linkbox.com': 'Mamun Aravi', 
   'shuvo@linkbox.com': 'Shuvo Sutradhar', 

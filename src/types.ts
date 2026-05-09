@@ -1,4 +1,4 @@
-export type Route = 'login' | 'dashboard' | 'members' | 'activity' | 'search' | 'leaderboard' | 'audit' | 'heatmap';
+export type Route = 'login' | 'dashboard' | 'members' | 'activity' | 'search' | 'leaderboard' | 'audit' | 'heatmap' | 'gapchecker' | 'shortener' | 'collector' | 'listgenerator' | 'admin' | 'topperformer' | 'memberMission';
 
 export interface Member {
   id: string;
@@ -13,11 +13,11 @@ export interface Member {
 }
 
 export function calculateLevel(points: number): string {
-  if (points >= 500) return 'Diamond';
-  if (points >= 200) return 'Platinum';
-  if (points >= 100) return 'Gold';
-  if (points >= 50) return 'Silver';
-  return 'Bronze';
+  if (points >= 500) return 'Wave Overlord';
+  if (points >= 200) return 'Wave Titan';
+  if (points >= 100) return 'Wave Vanguard';
+  if (points >= 50) return 'Wave Trooper';
+  return 'Wave Recruit';
 }
 
 export interface AuditLog {
