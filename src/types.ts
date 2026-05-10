@@ -13,11 +13,11 @@ export interface Member {
 }
 
 export function calculateLevel(points: number): string {
-  if (points >= 500) return 'Wave Overlord';
-  if (points >= 200) return 'Wave Titan';
-  if (points >= 100) return 'Wave Vanguard';
-  if (points >= 50) return 'Wave Trooper';
-  return 'Wave Recruit';
+  if (points >= 500) return 'Diamond';
+  if (points >= 200) return 'Platinum';
+  if (points >= 100) return 'Gold';
+  if (points >= 50) return 'Silver';
+  return 'Bronze';
 }
 
 export interface AuditLog {

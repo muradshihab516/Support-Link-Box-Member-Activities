@@ -41,6 +41,8 @@ import {
   BellRing,
   Lock,
   Waves,
+  Info,
+  ChevronLeft,
 } from "lucide";
 import { Route, Member, AuditLog, calculateLevel } from "./types";
 import { getAdminName, ADMIN_NAMES } from "./lib/utils";
@@ -481,7 +483,7 @@ function showNotice(title: string, message: string, type: "info" | "warning" | "
     </div>
   `;
   document.body.insertAdjacentHTML("beforeend", noticeHtml);
-  createIcons();
+  refreshIcons();
   setTimeout(() => {
     const el = document.getElementById(noticeId);
     if (el) {
@@ -489,6 +491,18 @@ function showNotice(title: string, message: string, type: "info" | "warning" | "
       setTimeout(() => el.remove(), 500);
     }
   }, 4000);
+}
+
+function refreshIcons() {
+  createIcons({
+    icons: {
+      LayoutDashboard, Users, PlusCircle, Search, Trophy, History, LogOut, ShieldCheck,
+      Calendar, Trash2, X, Copy, Check, ClipboardCheck, MessageSquare, BarChart3,
+      AlertTriangle, SpellCheck, ListFilter, ScanSearch, Bolt, Rocket, Wand2,
+      CalendarCheck, Link, AlertCircle, Edit3, Clipboard, RefreshCw, Inbox, BarChart,
+      Facebook, Clock, ArrowUp, ScanLine, FileText, BellRing, Lock, Waves, Info, ChevronLeft
+    }
+  });
 }
 
 // --- Renderers ---
@@ -563,51 +577,7 @@ function render() {
   }
 
   renderBackground();
-
-  // Refresh Lucide Icons
-  createIcons({
-    icons: {
-      LayoutDashboard,
-      Users,
-      PlusCircle,
-      Search,
-      Trophy,
-      History,
-      LogOut,
-      ShieldCheck,
-      Calendar,
-      Trash2,
-      X,
-      Copy,
-      Check,
-      ClipboardCheck,
-      MessageSquare,
-      BarChart3,
-      AlertTriangle,
-      SpellCheck,
-      ListFilter,
-      ScanSearch,
-      Bolt,
-      Rocket,
-      Wand2,
-      CalendarCheck,
-      Link,
-      AlertCircle,
-      Edit3,
-      Clipboard,
-      RefreshCw,
-      Inbox,
-      BarChart,
-      Facebook,
-      Clock,
-      ArrowUp,
-      ScanLine,
-      FileText,
-      BellRing,
-      Lock,
-      Waves,
-    },
-  });
+  refreshIcons();
 }
 
 function renderMemberDetail(member: Member) {
@@ -637,7 +607,7 @@ function renderMemberDetail(member: Member) {
              <h1 class="text-2xl font-black italic tracking-tighter text-white uppercase mb-2 truncate">${member.name}</h1>
              <div class="flex flex-wrap justify-center md:justify-start gap-2">
                <span class="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[8px] font-black uppercase text-neon-cyan tracking-widest">${calculateLevel(member.total_points)}</span>
-               <span class="px-2 py-0.5 bg-neon-green/10 border border-neon-green/20 rounded text-[8px] font-black uppercase text-neon-green tracking-widest">Active Sync</span>
+               <span class="px-2 py-0.5 bg-neon-green/10 border border-neon-green/20 rounded text-[8px] font-black uppercase text-neon-green tracking-widest">Active Member</span>
                <span class="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[8px] font-black uppercase text-white/20 tracking-widest">Last Activity: ${daysSinceSync}d</span>
              </div>
            </div>
@@ -729,8 +699,8 @@ function renderSidebar() {
   const adminName = isAdmin ? ADMIN_NAMES[user.email] : "Agent";
 
   const extendedItems = [
-    { id: "search", label: "Search", icon: "search" },
     { id: "gapchecker", label: "Gap Checker", icon: "scan-search" },
+    { id: "memberMission", label: "Missions", icon: "rocket", locked: true },
     { id: "admin", label: "Notice Box", icon: "lock", locked: true },
     { id: "audit", label: "Audit", icon: "history" },
   ];
@@ -756,7 +726,6 @@ function renderSidebar() {
             ${menuItems.map((item) => `
               <button 
                 data-route="${item.id}"
-                onclick="navigateTo('${item.id}')"
                 class="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-[12px] font-black tracking-widest uppercase transition-all duration-300 group
                 ${currentRoute === item.id ? "bg-white text-black shadow-lg scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}"
               >
@@ -774,7 +743,7 @@ function renderSidebar() {
             ${extendedItems.map((item) => `
               <button 
                 data-route="${item.locked ? '' : item.id}"
-                onclick="${item.locked ? "showNotice('Protocol Lock', 'Access Denied')" : `navigateTo('${item.id}')`}"
+                data-locked="${item.locked || false}"
                 class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 group
                 ${currentRoute === item.id ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5"}
                 ${item.locked ? "opacity-30" : ""}"
@@ -842,11 +811,11 @@ function renderLogin() {
         <div id="login-container" class="max-w-xs mx-auto space-y-6">
           <div class="space-y-3 text-left">
             <label class="text-[8px] font-black uppercase tracking-[0.2em] text-neon-cyan/60 px-4 italic font-orbitron">Operator Registry</label>
-            <input type="email" id="email-input" class="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:border-neon-cyan/50 focus:bg-white/[0.08] transition-all outline-none placeholder:text-white/10 shadow-inner" placeholder="EMAIL IDENTITY">
+            <input type="email" id="login-email" class="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:border-neon-cyan/50 focus:bg-white/[0.08] transition-all outline-none placeholder:text-white/10 shadow-inner" placeholder="EMAIL IDENTITY">
           </div>
           <div class="space-y-3 text-left">
             <label class="text-[8px] font-black uppercase tracking-[0.2em] text-neon-purple/60 px-4 italic font-orbitron">Cipher Authorization</label>
-            <input type="password" id="password-input" class="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:border-neon-purple/50 focus:bg-white/[0.08] transition-all outline-none placeholder:text-white/10 shadow-inner" placeholder="ACCESS CIPHER">
+            <input type="password" id="login-password" class="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:border-neon-purple/50 focus:bg-white/[0.08] transition-all outline-none placeholder:text-white/10 shadow-inner" placeholder="ACCESS CIPHER">
           </div>
           
           <div id="login-error" class="hidden text-[10px] font-black text-neon-red uppercase tracking-widest bg-neon-red/10 p-4 rounded-xl border border-neon-red/20 shadow-[0_0_20px_rgba(255,49,49,0.1)]">
@@ -923,14 +892,13 @@ function renderDashboard() {
   const secondaryTools = [
     { id: 'admin', label: 'Notice Box', icon: 'shield-check', desc: 'Core Systems', color: 'border-white/20' },
     { id: 'listgenerator', label: 'List Generator', icon: 'file-text', desc: 'Data Export', color: 'border-white/20' },
-    { id: 'memberMission', label: 'Missions', icon: 'rocket', desc: 'Active Ops', color: 'border-white/20' },
+    { id: 'memberMission', label: 'Missions', icon: 'rocket', desc: 'Active Ops', color: 'border-white/20', locked: true },
     { id: 'shortener', label: 'Shortener', icon: 'link', desc: 'Flux Paths', color: 'border-white/20' },
-    { id: 'collector', label: 'Collector', icon: 'inbox', desc: 'Seed Harvesting', color: 'border-white/20' },
     { id: 'topperformer', label: 'Top Performer', icon: 'bar-chart', desc: 'Metric Flow', color: 'border-white/20' },
   ];
 
   const statusIndicators = [
-    { label: 'Network', status: 'Optimal', id: 'stat-total-members', value: '...' },
+    { label: 'Total Members', status: 'Optimal', id: 'stat-total-members', value: '...' },
     { label: 'System', status: 'Secured', id: 'stat-system-load', value: 'OPTIMAL' },
     { label: 'Database', status: 'Syncing', id: 'stat-wave-cycle', value: 'ACTIVE' }
   ];
@@ -965,7 +933,7 @@ function renderDashboard() {
             ${statusIndicators.map(s => `
               <div>
                 <p class="text-[9px] font-black uppercase text-white/30 tracking-widest mb-1 italic font-orbitron">${s.label}</p>
-                <h3 id="${s.id}" class="text-[13px] font-black italic text-neon-cyan uppercase tracking-wider">${s.value}</h3>
+                <h3 id="${s.id}" class="text-sm sm:text-base font-black italic text-neon-cyan uppercase tracking-wider">${s.value}</h3>
               </div>
             `).join('')}
           </div>
@@ -1001,7 +969,7 @@ function renderDashboard() {
                 <div class="flex items-center gap-2 mb-2">
                   <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] italic font-orbitron">${tool.desc}</p>
                 </div>
-                <h3 class="text-3xl md:text-4xl font-black italic uppercase tracking-widest leading-none transition-all duration-700 ${tool.color}">${tool.label}</h3>
+                <h3 class="text-xl md:text-2xl font-black italic uppercase tracking-widest leading-none transition-all duration-700 ${tool.color}">${tool.label}</h3>
               </div>
             </div>
           </button>
@@ -1015,20 +983,23 @@ function renderDashboard() {
           <div class="h-px flex-1 bg-gradient-to-r from-white/10 via-white/5 to-transparent"></div>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           ${secondaryTools.map((tool) => `
             <button 
-              onclick="navigateTo('${tool.id}')" 
-              class="glass-card-neon lighting-border p-8 flex flex-col justify-between group text-left border-white/10 relative transition-all rounded-[2.5rem] h-72 bg-black/60 hover:bg-black/80 hover:-translate-y-4 duration-700 shadow-xl"
+              onclick="${tool.locked ? "showNotice('Protocol Lock', 'Access Denied')" : `navigateTo('${tool.id}')`}" 
+              class="glass-card-neon lighting-border p-8 flex flex-col justify-between group text-left border-white/10 relative transition-all rounded-[2.5rem] h-72 bg-black/60 hover:bg-black/80 hover:-translate-y-4 duration-700 shadow-xl ${tool.locked ? 'opacity-40' : ''}"
             >
               <div class="flex justify-between items-start">
                 <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-700 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
                   <i data-lucide="${tool.icon}" class="w-7 h-7 text-white/40 group-hover:text-black transition-all"></i>
                 </div>
-                <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan/20 group-hover:bg-neon-cyan transition-all shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
+                <div class="w-2.5 h-2.5 rounded-full ${tool.locked ? 'bg-neon-pink shadow-[0_0_15px_#FF0080]' : 'bg-neon-cyan/20 group-hover:bg-neon-cyan shadow-[0_0_15px_#00F5FF]'} transition-all animate-pulse"></div>
               </div>
               <div class="space-y-3">
-                <h4 class="text-xl font-black uppercase text-white tracking-tighter italic group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/30 decoration-2 underline-offset-8">${tool.label}</h4>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-lg font-black uppercase text-white tracking-tighter italic group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/30 decoration-2 underline-offset-8">${tool.label}</h4>
+                  ${tool.locked ? '<i data-lucide="lock" class="w-3 h-3 text-neon-pink"></i>' : ''}
+                </div>
                 <p class="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic font-orbitron group-hover:text-white/60 transition-colors">${tool.desc}</p>
               </div>
             </button>
@@ -1051,7 +1022,7 @@ function renderDashboard() {
             </div>
           </div>
 
-          <div id="notice-box-display" onclick="navigateTo('activity')" class="flex-1 w-full bg-black/60 border border-white/5 p-6 rounded-[1.5rem] shadow-inner min-h-[100px] flex items-center justify-center relative z-10 cursor-pointer hover:bg-black/80 transition-all">
+          <div id="notice-box-display" onclick="navigateTo('admin')" class="flex-1 w-full bg-black/60 border border-white/5 p-6 rounded-[1.5rem] shadow-inner min-h-[100px] flex items-center justify-center relative z-10 cursor-pointer hover:bg-black/80 transition-all">
             <p class="text-lg text-white font-black italic animate-pulse font-orbitron tracking-[0.2em] uppercase">Checking System Status...</p>
           </div>
 
@@ -1069,7 +1040,14 @@ function renderDashboard() {
 function renderMembers() {
   return `
     <header class="mb-8 animate-in fade-in slide-in-from-top-2">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+          Back
+        </button>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
           <div class="flex items-center gap-3 mb-2">
             <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
@@ -1080,17 +1058,25 @@ function renderMembers() {
           </h1>
         </div>
         
-        <button id="add-member-btn" class="relative group h-16 px-12 overflow-hidden rounded-[1.5rem] bg-gradient-to-r from-neon-cyan via-white to-neon-purple text-black font-black uppercase tracking-[0.4em] text-[13px] transition-all hover:scale-[1.05] shadow-[0_0_40px_rgba(0,245,255,0.2)] active:scale-[0.98] font-orbitron">
-           <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-white to-neon-purple opacity-0 group-hover:opacity-20 transition-opacity"></div>
-           <div class="flex items-center gap-4 relative z-10 italic">
-             <i data-lucide="plus-circle" class="w-6 h-6"></i>
-             Register Personnel
-           </div>
-        </button>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="relative group min-w-[300px]">
+             <div class="absolute -inset-1 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition-all"></div>
+             <input id="member-search-input" type="text" placeholder="SEARCH IDENTITY..." class="w-full h-16 bg-black/60 border border-white/10 rounded-2xl px-12 text-sm font-bold text-white focus:outline-none focus:border-neon-cyan/40 transition-all placeholder:text-white/20 backdrop-blur-xl">
+             <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-neon-cyan transition-colors"></i>
+          </div>
+
+          <button id="add-member-btn" class="relative group h-16 px-12 overflow-hidden rounded-[1.5rem] bg-gradient-to-r from-neon-cyan via-white to-neon-purple text-black font-black uppercase tracking-[0.4em] text-[13px] transition-all hover:scale-[1.05] shadow-[0_0_40px_rgba(0,245,255,0.2)] active:scale-[0.98] font-orbitron">
+             <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-white to-neon-purple opacity-0 group-hover:opacity-20 transition-opacity"></div>
+             <div class="flex items-center gap-4 relative z-10 italic">
+               <i data-lucide="plus-circle" class="w-6 h-6"></i>
+               Register Personnel
+             </div>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div id="members-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pb-20">
+    <div id="members-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-20">
       <div class="p-10 text-center col-span-full">
          <div class="w-8 h-8 border-2 border-white/5 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
          <p class="text-[8px] font-black uppercase text-white/20 tracking-widest italic">Syncing matrix data...</p>
@@ -1107,6 +1093,12 @@ function renderActivity() {
 
   return `
     <header class="mb-10 animate-in fade-in slide-in-from-top-2">
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+          Back
+        </button>
+      </div>
       <div class="flex items-center gap-3 mb-2">
         <div class="w-2.5 h-2.5 rounded-full bg-neon-purple shadow-[0_0_15px_#BF00FF] animate-pulse"></div>
         <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Temporal Sync Link</p>
@@ -1325,6 +1317,12 @@ ${list || "কোনো ইনেক্টিভ মেম্বার পাও
 function renderLeaderboard() {
   return `
     <header class="mb-16 px-4 md:px-0">
+      <div class="flex items-center gap-3 mb-8">
+        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+          Back
+        </button>
+      </div>
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
         <div class="relative">
           <div class="flex items-center gap-6 mb-8">
@@ -1361,6 +1359,12 @@ function renderLeaderboard() {
 function renderAudit() {
   return `
     <header class="mb-16 px-4 md:px-0">
+      <div class="flex items-center gap-3 mb-8">
+        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+          Back
+        </button>
+      </div>
       <div class="relative">
         <div class="flex items-center gap-6 mb-8">
           <span class="w-12 h-px bg-neon-purple/40"></span>
@@ -1420,7 +1424,7 @@ function attachContentEvents() {
         const display = document.getElementById("notice-box-display");
         if (display) {
           const i = (window as any).noticeIdx;
-          display.innerHTML = `<p class="text-sm font-black italic animate-in slide-in-from-bottom-2 duration-500 font-orbitron tracking-[0.1em] leading-relaxed text-center text-white drop-shadow-[0_0_10px_rgba(0,245,255,0.6)]">
+          display.innerHTML = `<p class="text-lg font-black italic animate-in slide-in-from-bottom-2 duration-500 font-orbitron tracking-[0.1em] leading-relaxed text-center text-white drop-shadow-[0_0_10px_rgba(0,245,255,0.6)]">
             <span class="text-neon-cyan animate-pulse">>></span> ${messages[i % messages.length]}
           </p>`;
           (window as any).noticeIdx++;
@@ -1441,6 +1445,16 @@ function attachContentEvents() {
     }
   } else if (currentRoute === "members") {
     fetchMembers();
+
+    const searchInput = document.getElementById("member-search-input") as HTMLInputElement;
+    let searchTimeout: any;
+    searchInput?.addEventListener("input", (e) => {
+      const val = (e.target as HTMLInputElement).value;
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        filterMembersInList(val);
+      }, 300);
+    });
 
     document.getElementById("add-member-btn")?.addEventListener("click", () => {
       document.getElementById("member-modal")?.classList.remove("hidden");
@@ -1764,20 +1778,6 @@ function attachContentEvents() {
           alert("Discovery Protocol Failure.");
         }
       });
-  } else if (currentRoute === "search") {
-    const input = document.getElementById("search-input") as HTMLInputElement;
-    let searchTimeout: any;
-    input?.addEventListener("input", (e) => {
-      const val = (e.target as HTMLInputElement).value;
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        if (val.length >= 2) performSearch(val);
-        else {
-          const results = document.getElementById("search-results");
-          if (results) results.innerHTML = "";
-        }
-      }, 300);
-    });
   } else if (currentRoute === "leaderboard") {
     fetchLeaderboard();
   } else if (currentRoute === "listgenerator") {
@@ -1797,8 +1797,6 @@ function attachContentEvents() {
     attachGapCheckerEvents();
   } else if (currentRoute === "shortener") {
     attachShortenerEvents();
-  } else if (currentRoute === "collector") {
-    attachCollectorEvents();
   }
 }
 
@@ -2030,12 +2028,12 @@ async function fetchLeaderboard() {
         copyBtn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copied';
         setTimeout(() => {
           copyBtn.innerHTML = '<i data-lucide="copy" class="w-3 h-3"></i> Copy Protocol';
-          createIcons({ icons: { Copy } });
+          refreshIcons();
         }, 2000);
       });
     }
 
-    createIcons({ icons: { Trophy, History, Search, PlusCircle, Users, LayoutDashboard, Copy, Check, Calendar, ShieldCheck, X } });
+    refreshIcons();
   } catch (err: any) {
     if (container) container.innerHTML = `<div class="p-20 text-center text-white/20 premium-label">Grid Sync Error: ${err.message}</div>`;
   }
@@ -2091,7 +2089,7 @@ async function fetchAuditLogs() {
       });
     });
 
-    createIcons({ icons: { Trash2 } });
+    refreshIcons();
   }
 }
 
@@ -2109,6 +2107,100 @@ async function fetchHeatmapData() {
   if (container) {
     container.innerHTML = `<div class="p-20 text-center text-gray-700 italic w-full">Heatmap visualization requires d3 integration. Data fetched successfully.</div>`;
   }
+}
+
+function renderMemberCardHtml(member: Member) {
+  return `
+    <div class="group relative member-card" data-member-id="${member.id}">
+      <div class="glass-card-neon lighting-border p-4 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[1.5rem] bg-black/40">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-neon-cyan/10 to-transparent -mr-12 -mt-12 rounded-full"></div>
+        <div class="flex items-center gap-3 mb-4 relative z-10">
+          <div class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center font-black text-neon-cyan italic text-xs group-hover:bg-white group-hover:text-black transition-all duration-500 shadow-xl shrink-0">
+            #${member.member_number}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-black italic uppercase tracking-tight text-white text-[12px] sm:text-[14px] leading-tight group-hover:text-neon-cyan transition-colors duration-500 font-cinzel truncate">${member.name}</h4>
+            <p class="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em] text-white/40 mt-1 flex items-center gap-2 font-orbitron group-hover:text-neon-cyan/60 transition-colors">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF] animate-pulse"></span>
+              ${calculateLevel(member.total_points || 0)}
+            </p>
+          </div>
+          <button 
+            data-delete-member="${member.id}"
+            data-member-name="${member.name}"
+            class="opacity-0 group-hover:opacity-100 p-2 bg-neon-red/20 text-neon-red rounded-xl transition-all duration-500 hover:scale-110 active:scale-95"
+            onclick="event.stopPropagation()"
+          >
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 relative z-10">
+          <div class="text-left">
+            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Neural Pts</span>
+            <span class="text-xl font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
+          </div>
+          <div class="text-right">
+            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Max Chain</span>
+            <span class="text-xl font-black italic text-white/40 group-hover:text-white/80 transition-colors">${member.max_streak || 0}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function attachMemberCardEvents(data: Member[]) {
+  const list = document.getElementById("members-list");
+  if (!list) return;
+
+  // Member details click
+  list.querySelectorAll(".member-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const id = (card as HTMLElement).dataset.memberId;
+      const member = data.find((m) => m.id === id);
+      if (member) {
+        selectedMember = member;
+        render();
+      }
+    });
+  });
+
+  list.querySelectorAll("[data-delete-member]").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const id = (e.currentTarget as HTMLButtonElement).dataset.deleteMember;
+      const name = (e.currentTarget as HTMLButtonElement).dataset.memberName;
+      if (confirm(`INITIATE DELETION PROTOCOL FOR ${name}?`)) {
+        await supabase.from("members").delete().eq("id", id);
+        await logAudit("MEMBER_DELETE", `Purged identity: ${name}`);
+        membersCache = null;
+        fetchMembers();
+      }
+    });
+  });
+  
+  refreshIcons();
+}
+
+function filterMembersInList(query: string) {
+  const list = document.getElementById("members-list");
+  if (!list || !membersCache) return;
+  
+  if (!query || query.length < 1) {
+    list.innerHTML = membersCache.map(member => renderMemberCardHtml(member)).join('');
+    attachMemberCardEvents(membersCache);
+    return;
+  }
+  
+  const filtered = membersCache.filter(m => m.name.toLowerCase().includes(query.toLowerCase()));
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="p-20 text-center col-span-full opacity-30 text-[10px] font-black uppercase tracking-widest italic">No matching identities found in roster.</div>`;
+    return;
+  }
+  
+  list.innerHTML = filtered.map(member => renderMemberCardHtml(member)).join('');
+  attachMemberCardEvents(membersCache);
 }
 
 async function fetchMembers() {
@@ -2135,84 +2227,8 @@ async function fetchMembers() {
     }
 
     if (data) {
-      list.innerHTML = data
-        .map(
-          (member) => `
-        <div class="group relative member-card" data-member-id="${member.id}">
-          <div class="glass-card-neon lighting-border p-5 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] bg-black/40">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-neon-cyan/10 to-transparent -mr-12 -mt-12 rounded-full"></div>
-            <div class="flex items-center gap-4 mb-5 relative z-10">
-              <div class="w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center font-black text-neon-cyan italic text-sm group-hover:bg-white group-hover:text-black transition-all duration-500 shadow-xl">
-                #${member.member_number}
-              </div>
-              <div class="flex-1 min-w-0">
-                <h4 class="font-black italic uppercase tracking-tighter text-white text-sm truncate group-hover:text-neon-cyan transition-colors duration-500 font-cinzel">${member.name}</h4>
-                <p class="text-[8px] font-black uppercase tracking-[0.3em] text-white/40 mt-1 flex items-center gap-2 font-orbitron group-hover:text-neon-cyan/60 transition-colors">
-                  <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF] animate-pulse"></span>
-                  ${calculateLevel(member.total_points || 0)}
-                </p>
-              </div>
-              <button 
-                data-delete-member="${member.id}"
-                data-member-name="${member.name}"
-                class="opacity-0 group-hover:opacity-100 p-2 bg-neon-red/20 text-neon-red rounded-xl transition-all duration-500 hover:scale-110 active:scale-95"
-                onclick="event.stopPropagation()"
-              >
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 relative z-10">
-              <div class="text-left">
-                <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Neural Pts</span>
-                <span class="text-xl font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
-              </div>
-              <div class="text-right">
-                <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Max Chain</span>
-                <span class="text-xl font-black italic text-white/40 group-hover:text-white/80 transition-colors">${member.max_streak || 0}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
-        )
-        .join("");
-
-      // Member details click
-      list.querySelectorAll(".member-card").forEach((card) => {
-        card.addEventListener("click", () => {
-          const id = (card as HTMLElement).dataset.memberId;
-          const member = data.find((m) => m.id === id);
-          if (member) {
-            selectedMember = member;
-            render();
-          }
-        });
-      });
-
-      list.querySelectorAll("[data-delete-member]").forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
-          const id = (e.currentTarget as HTMLButtonElement).dataset
-            .deleteMember;
-          const name = (e.currentTarget as HTMLButtonElement).dataset
-            .memberName;
-          if (confirm(`Expunge member record for ${name}?`)) {
-            const { error: delErr } = await supabase
-              .from("members")
-              .delete()
-              .eq("id", id);
-            if (!delErr) {
-              await logAudit("MEMBER_DELETE", `Personnel expunged: ${name}`);
-              membersCache = null; // Clear cache
-              fetchMembers();
-            } else {
-              alert("Deletion error: " + delErr.message);
-            }
-          }
-        });
-      });
-
-      createIcons({ icons: { Trash2 } });
+      list.innerHTML = data.map((member) => renderMemberCardHtml(member)).join("");
+      attachMemberCardEvents(data);
     }
   } catch (err: any) {
     list.innerHTML = `<div class="p-10 text-center text-neon-red font-black uppercase italic tracking-widest">Database Sync Failure: ${err.message}</div>`;
@@ -2278,9 +2294,7 @@ function renderStatCard(
 function attachLoginEvents() {
   const loginBtn = document.getElementById("login-btn");
   const emailInput = document.getElementById("login-email") as HTMLInputElement;
-  const passwordInput = document.getElementById(
-    "login-password",
-  ) as HTMLInputElement;
+  const passwordInput = document.getElementById("login-password") as HTMLInputElement;
   const errorDiv = document.getElementById("login-error");
 
   const handleLogin = async () => {
@@ -2295,26 +2309,61 @@ function attachLoginEvents() {
       return;
     }
 
-    loginBtn!.textContent = "AUTHENTICATING...";
-    loginBtn!.setAttribute("disabled", "true");
+    if (loginBtn) {
+      loginBtn.innerHTML = `
+        <div class="relative w-full h-full bg-transparent text-white font-black uppercase tracking-[0.4em] text-[12px] rounded-2xl flex items-center justify-center font-orbitron overflow-hidden">
+           <span class="relative z-10">AUTHORIZING...</span>
+           <div class="absolute inset-0 bg-gradient-to-r from-neon-purple via-neon-pink to-neon-amber animate-pulse"></div>
+        </div>
+      `;
+      loginBtn.setAttribute("disabled", "true");
+    }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error) throw error;
-    } catch (error: any) {
-      loginBtn!.textContent = "INITIALIZE ACCESS";
-      loginBtn!.removeAttribute("disabled");
-      if (errorDiv) {
-        errorDiv.textContent = error.message.toUpperCase();
-        errorDiv.classList.remove("hidden");
+
+      if (error) {
+        if (loginBtn) {
+          loginBtn.innerHTML = `
+            <div class="absolute -inset-1 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+            <div class="relative w-full h-full bg-white text-black font-black uppercase tracking-[0.4em] text-[12px] rounded-2xl flex items-center justify-center font-orbitron group-hover:bg-transparent group-hover:text-white transition-all duration-500 overflow-hidden">
+                <span class="relative z-10">Authorize Access</span>
+                <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+          `;
+          loginBtn.removeAttribute("disabled");
+        }
+        if (errorDiv) {
+          errorDiv.textContent = "PROTOCOL DENIED: INVALID CIPHER";
+          errorDiv.classList.remove("hidden");
+        }
+      } else {
+        user = data.user;
+        currentRoute = "dashboard";
+        render();
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (loginBtn) {
+        loginBtn.innerHTML = `
+          <div class="absolute -inset-1 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+          <div class="relative w-full h-full bg-white text-black font-black uppercase tracking-[0.4em] text-[12px] rounded-2xl flex items-center justify-center font-orbitron group-hover:bg-transparent group-hover:text-white transition-all duration-500 overflow-hidden">
+              <span class="relative z-10">Authorize Access</span>
+              <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+        `;
+        loginBtn.removeAttribute("disabled");
       }
     }
   };
 
-  loginBtn?.addEventListener("click", handleLogin);
+  loginBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    handleLogin();
+  });
   passwordInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
@@ -2326,10 +2375,19 @@ function attachLoginEvents() {
 function attachSidebarEvents() {
   document.querySelectorAll("[data-route]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
-      const route = (e.currentTarget as HTMLButtonElement).dataset
-        .route as Route;
-      isSidebarOpen = false; // Close on navigation
-      navigate(route);
+      const target = e.currentTarget as HTMLButtonElement;
+      const isLocked = target.dataset.locked === 'true';
+      
+      if (isLocked) {
+        showNotice('Protocol Lock', 'Restricted Authorization Required', 'warning');
+        return;
+      }
+
+      const route = target.dataset.route as Route;
+      if (route) {
+        isSidebarOpen = false; // Close on navigation
+        navigate(route);
+      }
     });
   });
 
@@ -2390,6 +2448,12 @@ function renderGapChecker() {
 
   return `
         <header class="mb-10 animate-in fade-in slide-in-from-top-2 relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+              <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+                <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+                Back
+              </button>
+            </div>
             <div class="flex items-center gap-2 mb-2">
                 <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_12px_#00F5FF] animate-pulse"></div>
                 <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em] font-orbitron italic">Wave Matrix Validation</p>
@@ -2671,7 +2735,7 @@ async function performGapAnalysis() {
         </div>
     `;
 
-  createIcons({ icons: { AlertTriangle, Copy, Trash2, X, Check } });
+  refreshIcons();
   attachGapResultEvents();
 }
 
@@ -2792,36 +2856,6 @@ function normalizeShortenerText(text: string) {
   return t;
 }
 
-function extractShortenerNumber(text: string) {
-  if (!text) return null;
-  let clean = normalizeShortenerText(text).substring(0, 150);
-  clean = clean.replace(/[^a-zA-Z0-9\s]/g, " ");
-  const regex =
-    /(?:link|post|serial|number|like|no|id|on|লিংক|পোস্ট|সিরিয়াল|নং|নাম্বার)(?:\s+)?(?:no|number|num|on|নং)?(?:\s+)?(\d+)/i;
-  let match = clean.match(regex);
-  if (match) return parseInt(match[1]);
-  const startMatch = clean.match(/^\s*(\d+)/);
-  if (startMatch) return parseInt(startMatch[1]);
-  return null;
-}
-
-function cleanShortenerInstruction(text: string) {
-  if (!text) return "";
-  let t = normalizeShortenerText(text);
-  t = t.replace(
-    /(?:link|post|serial|like|no|id|on|লিংক|পোস্ট|নং)(?:[^0-9]{0,20})?\d+/gi,
-    "",
-  );
-  t = t.replace(/-{3,}/g, "").replace(/<<<BLOCK_SEPARATOR>>>/g, "");
-  t = t
-    .replace(/^\d+\s*/gm, "")
-    .replace(/#(admin|vip|notice|mod|এডমিন|ভিআইপি|নোটিশ)\w*/gi, "")
-    .replace(/\n+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return t;
-}
-
 let currentShortenerTab: "processor" | "collector" = "processor";
 
 function renderShortener() {
@@ -2834,6 +2868,12 @@ function renderShortener() {
 
   return `
         <header class="mb-8 animate-fade-in">
+            <div class="flex items-center gap-3 mb-6">
+              <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+                <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+                Back
+              </button>
+            </div>
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF]"></div>
                 <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em]">Advanced Neural Processor</p>
@@ -2983,11 +3023,11 @@ function attachShortenerEvents() {
 
   showProc?.addEventListener("click", () => {
     currentShortenerTab = "processor";
-    navigate("shortener");
+    render();
   });
   showColl?.addEventListener("click", () => {
     currentShortenerTab = "collector";
-    navigate("shortener");
+    render();
   });
 
   if (currentShortenerTab === "processor") {
@@ -3020,7 +3060,7 @@ function attachShortenerEvents() {
         batchInput.value = "";
         startInput.value = "";
         updateShortenerLiveStats();
-        navigate("shortener");
+        render();
       });
 
     document
@@ -3028,7 +3068,10 @@ function attachShortenerEvents() {
       ?.addEventListener("click", () => executeShortenerSort());
     document
       .getElementById("copy-short-main")
-      ?.addEventListener("click", () => copyToClipboard(shortenerOutputData));
+      ?.addEventListener("click", () => {
+        const out = document.getElementById("short-output") as HTMLTextAreaElement;
+        if (out) copyToClipboard(out.innerText || out.textContent || "");
+      });
     document
       .getElementById("copy-plain")
       ?.addEventListener("click", () => copyToClipboard(shortenerOutputData));
@@ -3265,7 +3308,7 @@ function executeShortenerSort() {
     alertBox.classList.add("bg-neon-green/10", "text-neon-green", "show");
     alertBox.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Sort Protocol Perfect!`;
   }
-  createIcons({ icons: { AlertTriangle, AlertCircle, Check } });
+  refreshIcons();
 
   const summarySection = document.getElementById("short-summary")!;
   summarySection.classList.remove("hidden");
@@ -3452,7 +3495,7 @@ function updateCollectorUI() {
     `,
     )
     .join("");
-  createIcons({ icons: { X } });
+  refreshIcons();
 }
 
 (window as any).removeCollectorItem = (i: number) => {
@@ -3475,6 +3518,15 @@ function collectorToast(msg: string) {
 function copyToClipboard(text: string) {
   if (!text) return;
   navigator.clipboard.writeText(text);
+}
+
+function extractShortenerNumber(text: string) {
+  const match = text.match(/(\d+)/);
+  return match ? match[1] : "";
+}
+
+function cleanShortenerInstruction(text: string) {
+  return text.replace(/^\d+[\s>▶️➤➡→]*/, "").trim();
 }
 
 // --- Initialization ---

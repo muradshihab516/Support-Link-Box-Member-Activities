@@ -24,6 +24,13 @@ export function renderAdminPanel(userEmail: string | undefined) {
 
   return `
     <div class="space-y-12 animate-fade-in pb-20">
+      <div class="flex items-center gap-3">
+        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
+          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+          Back
+        </button>
+      </div>
+
       <header class="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-white/5 pb-8">
         <div>
           <div class="flex items-center gap-3 mb-2">
