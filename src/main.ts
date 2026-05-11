@@ -45,7 +45,7 @@ import {
   ChevronLeft,
 } from "lucide";
 import { Route, Member, AuditLog, calculateLevel } from "./types";
-import { getAdminName, ADMIN_NAMES } from "./lib/utils";
+import { getAdminName, ADMIN_NAMES, cleanName } from "./lib/utils";
 import { parseActivityBatch } from "./lib/parser";
 
 import { renderAdminPanel, initializeAdminPanel } from "./lib/admin";
@@ -106,7 +106,9 @@ let removedFromGap = new Set<string>();
 // --- GapChecker Utilities ---
 function proNormalize(name: string): string {
   if (!name || typeof name !== "string") return "";
-  let normalized = name.normalize("NFKC").normalize("NFC");
+  let normalized = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, ""); // Detach and remove accents
+  normalized = normalized.normalize("NFKC").normalize("NFC");
+  
   normalized = normalized.replace(/@/g, "");
   normalized = normalized.replace(
     /[\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF\u00AD\u061C\u180E\u3000]/g,
@@ -116,40 +118,16 @@ function proNormalize(name: string): string {
     /[\s\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]+/g,
     "",
   );
-  normalized = normalized.replace(/[\uD83C-\uDBFF\uDC00-\uDFFF]+/g, "");
+  normalized = normalized.replace(/[\uD83C-\uDBFF\uDC00-\uDFFF]+/g, ""); 
   normalized = normalized.replace(/[\u2600-\u26FF\u2700-\u27BF]/g, "");
   normalized = normalized.replace(
     /[\u2500-\u257F\u2580-\u259F\u25A0-\u25FF\u2300-\u23FF]/g,
     "",
   );
-  normalized = normalized.replace(/[\u0300-\u036F]/g, "");
 
   // Fancy letter conversion logic
   const smallCapsMap: Record<string, string> = {
-    ᴀ: "a",
-    ʙ: "b",
-    ᴄ: "c",
-    ᴅ: "d",
-    ᴇ: "e",
-    ꜰ: "f",
-    ɢ: "g",
-    ʜ: "h",
-    ɪ: "i",
-    ᴊ: "j",
-    ᴋ: "k",
-    ʟ: "l",
-    ᴍ: "m",
-    ɴ: "n",
-    ᴏ: "o",
-    ᴘ: "p",
-    ʀ: "r",
-    ꜱ: "s",
-    ᴛ: "t",
-    ᴜ: "u",
-    ᴠ: "v",
-    ᴡ: "w",
-    ʏ: "y",
-    ᴢ: "z",
+    ᴀ: "a", ʙ: "b", ᴄ: "c", ᴅ: "d", ᴇ: "e", ꜰ: "f", ɢ: "g", ʜ: "h", ɪ: "i", ᴊ: "j", ᴋ: "k", ʟ: "l", ᴍ: "m", ɴ: "n", ᴏ: "o", ᴘ: "p", ʀ: "r", ꜱ: "s", ᴛ: "t", ᴜ: "u", ᴠ: "v", ᴡ: "w", ʏ: "y", ᴢ: "z",
   };
   let result = "";
   for (const char of normalized) {
@@ -157,8 +135,9 @@ function proNormalize(name: string): string {
   }
 
   result = result.toLowerCase();
+  // Keep English, Bengali, and also any other alphabetic characters from other languages that survived the accent stripping
   result = result.replace(
-    /[^\u0980-\u09FF\u0600-\u06FF\u0900-\u097Fa-zA-Z0-9]/g,
+    /[^\u0980-\u09FF\u0600-\u06FF\u0900-\u097Fa-z0-9]/g,
     "",
   );
   return result;
@@ -1529,43 +1508,41 @@ function attachContentEvents() {
         const lines = rawNames.split('\n');
         
         const processFragment = (f: string) => {
-          let cleaned = f.trim();
-          if (!cleaned) return;
-
-          // Remove common list prefixes and noise at the start: 
-          // Numbers, arrows, common separators, list emojis
-          cleaned = cleaned.replace(/^[0-9০০-৯\s\.\-#*️⃣🔟\uFE0F\u20E3➤।৷\-–—\/\\|_:;,)\]>»\+]+/, '');
-          cleaned = cleaned.trim();
+          const cleaned = cleanName(f);
           
           if (cleaned.length >= 2) {
+            const hasLetters = /[a-zA-Z\u0980-\u09FF\u00C0-\u024F]/.test(cleaned);
             const lower = cleaned.toLowerCase();
-            // Filter keywords that are definitely not names
             const isJunk = ["register", "members", "database", "system", "active", "points", "sync", "no post", "react", "comment", "like"].some(k => lower.includes(k));
-            if (!isJunk) {
+            
+            if (hasLetters && !isJunk) {
               namesList.push(cleaned);
             }
           }
         };
 
         for (let line of lines) {
-          if (!line.trim()) continue;
+          const l = line.trim();
+          if (!l) continue;
 
-          // Handle multiple @ in a single line (like "@Name1 @Name2")
-          if (line.includes('@')) {
-            const parts = line.split('@');
-            // part[0] is only relevant if it's not noise before the first @
-            const firstPartClean = parts[0].replace(/^[0-9০০-৯\s\.\-#*️⃣🔟\uFE0F\u20E3➤।৷\-–—\/\\|_:;,)\]>»\+]+/, '').trim();
-            if (firstPartClean.length >= 2 && !parts[0].includes('➤')) {
-              processFragment(parts[0]);
+          if (l.includes('@')) {
+            const parts = l.split('@');
+            // parts[0] is often numbering (e.g., "1. @Name")
+            // We only treat it as a name if it's substantial and not just a prefix
+            const p0 = parts[0].trim();
+            const p0Clean = p0.replace(/^[0-9০০-৯\s\.\-#*️⃣🔟\uFE0F\u20E3➤।৷\-–—\/\\|_:;,)\]>»\+]+/, '').trim();
+            
+            if (p0Clean.length >= 4 && !p0.includes('➤')) {
+              processFragment(p0);
             }
             
-            // Everything after an @ is considered a name fragment
             for (let i = 1; i < parts.length; i++) {
-              processFragment(parts[i]);
+              if (parts[i].trim()) {
+                processFragment(parts[i]);
+              }
             }
           } else {
-            // No @ found, treat entire line as a potential name
-            processFragment(line);
+            processFragment(l);
           }
         }
 
@@ -2280,7 +2257,7 @@ function renderMemberCardHtml(member: Member) {
 
         <!-- Identity Section -->
         <div class="flex-1 min-w-0 mb-6 relative z-10">
-          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.3] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-2 min-h-[2.6em] mb-2">${member.name}</h4>
+          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.3] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-3 min-h-[3.9em] mb-2">${member.name}</h4>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5">
               <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF] animate-pulse"></span>

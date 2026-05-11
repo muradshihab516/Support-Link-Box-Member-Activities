@@ -1,3 +1,5 @@
+import { cleanName } from "./utils";
+
 export interface ParsedActivity {
   username: string;
   points: number;
@@ -15,15 +17,9 @@ export function parseActivityBatch(data: string): ParsedActivity[] {
   let m;
   while ((m = namePattern.exec(data)) !== null) {
     if (m[1]) {
-      let username = m[1].trim();
-      
-      // Secondary cleaning: remove leading symbols and numbering that might have been captured
-      username = username.replace(/^[0-9০০-৯\.\s#*️⃣🔟\uFE0F\u20E3@।৷\-–—]+/, '');
-      username = username.replace(/^[^a-zA-Z0-9\u0980-\u09FF]+/, '');
-      username = username.replace(/^[@\.\s]+/, '');
-      username = username.trim();
+      const username = cleanName(m[1]);
 
-      if (username.toLowerCase().includes('no post') || username.length < 2) continue;
+      if (!username || username.toLowerCase().includes('no post') || username.length < 2) continue;
       
       // Find context (points) in the line containing this match
       const startOfLine = data.lastIndexOf('\n', m.index) + 1;
