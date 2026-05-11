@@ -1527,39 +1527,45 @@ function attachContentEvents() {
         
         // Robust Name Extraction Logic
         const lines = rawNames.split('\n');
-        for (let line of lines) {
-          // If a line contains multiple @ symbols, it's likely multiple names
-          // e.g. "@Name1 @Name2"
-          let chunks: string[] = [];
-          if (line.includes('@')) {
-            chunks = line.split('@').map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
-          } else {
-            chunks = [line.trim()];
-          }
+        
+        const processFragment = (f: string) => {
+          let cleaned = f.trim();
+          if (!cleaned) return;
 
-          for (let chunk of chunks) {
-            let cleaned = chunk;
-            if (!cleaned) continue;
-
-            // Aggressively remove prefixes: Numbers, symbols, separators at the start
-            let lastCleaned = "";
-            while (cleaned !== lastCleaned) {
-              lastCleaned = cleaned;
-              // Remove leading numbers (English/Bengali) and common delimiters
-              cleaned = cleaned.replace(/^[0-9০০-৯\.\s#*️⃣🔟\uFE0F\u20E3@।৷\-–—\/\\|_:;,)\]]+/, '');
-              // Remove any leading non-alphanumeric characters
-              cleaned = cleaned.replace(/^[^a-zA-Z0-9\u0980-\u09FF]+/, '');
-            }
-            
-            // Post-cleaning: handle any remaining @ or junk
-            cleaned = cleaned.replace(/@/g, ' ').replace(/\s+/g, ' ').trim();
-
+          // Remove common list prefixes and noise at the start: 
+          // Numbers, arrows, common separators, list emojis
+          cleaned = cleaned.replace(/^[0-9০০-৯\s\.\-#*️⃣🔟\uFE0F\u20E3➤।৷\-–—\/\\|_:;,)\]>»\+]+/, '');
+          cleaned = cleaned.trim();
+          
+          if (cleaned.length >= 2) {
             const lower = cleaned.toLowerCase();
-            const isJunk = ["register", "members", "database", "system", "active", "points", "sync", "no post"].some(k => lower.includes(k));
-
-            if (cleaned && cleaned.length >= 2 && !isJunk) {
+            // Filter keywords that are definitely not names
+            const isJunk = ["register", "members", "database", "system", "active", "points", "sync", "no post", "react", "comment", "like"].some(k => lower.includes(k));
+            if (!isJunk) {
               namesList.push(cleaned);
             }
+          }
+        };
+
+        for (let line of lines) {
+          if (!line.trim()) continue;
+
+          // Handle multiple @ in a single line (like "@Name1 @Name2")
+          if (line.includes('@')) {
+            const parts = line.split('@');
+            // part[0] is only relevant if it's not noise before the first @
+            const firstPartClean = parts[0].replace(/^[0-9০০-৯\s\.\-#*️⃣🔟\uFE0F\u20E3➤।৷\-–—\/\\|_:;,)\]>»\+]+/, '').trim();
+            if (firstPartClean.length >= 2 && !parts[0].includes('➤')) {
+              processFragment(parts[0]);
+            }
+            
+            // Everything after an @ is considered a name fragment
+            for (let i = 1; i < parts.length; i++) {
+              processFragment(parts[i]);
+            }
+          } else {
+            // No @ found, treat entire line as a potential name
+            processFragment(line);
           }
         }
 
@@ -2251,33 +2257,30 @@ function renderMemberCardHtml(member: Member) {
       <div class="glass-card-neon lighting-border p-5 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] bg-black/40">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-neon-cyan/5 to-transparent -mr-16 -mt-16 rounded-full blur-2xl"></div>
         
-        <!-- Card Header -->
+        <!-- Card Header: Checkbox, ID, Purge -->
         <div class="flex items-center justify-between mb-4 relative z-20">
           <div class="flex items-center gap-3">
-            <div class="relative">
-              <input 
-                type="checkbox" 
-                class="member-select-checkbox w-5 h-5 rounded-lg border border-white/10 bg-black/60 text-neon-cyan focus:ring-neon-cyan/50 focus:ring-offset-0 cursor-pointer opacity-20 group-hover:opacity-100 transition-all checked:opacity-100" 
-                data-select-id="${member.id}"
-              >
-            </div>
-            <div class="px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 text-[10px] font-black text-neon-cyan italic tracking-widest shadow-[0_0_15px_rgba(0,245,255,0.1)]">
-              #${String(member.member_number).padStart(2, '0')}
+            <input 
+              type="checkbox" 
+              class="member-select-checkbox w-5 h-5 rounded-lg border border-white/10 bg-black/60 text-neon-cyan focus:ring-neon-cyan/50 focus:ring-offset-0 cursor-pointer opacity-40 group-hover:opacity-100 transition-all checked:opacity-100" 
+              data-select-id="${member.id}"
+            >
+            <div class="px-2 py-0.5 rounded bg-white/[0.05] border border-white/10 text-[9px] font-black text-white/40 tracking-widest font-orbitron">
+              ID: ${String(member.member_number).padStart(3, '0')}
             </div>
           </div>
-          
           <button 
             type="button"
             onclick="event.stopPropagation(); if(typeof window.initiateMemberPurge === 'function') window.initiateMemberPurge('${member.id}', '${member.name}')"
-            class="p-2.5 bg-neon-red/10 text-neon-red rounded-xl opacity-0 group-hover:opacity-100 hover:bg-neon-red hover:text-white transition-all duration-300 transform scale-90 hover:scale-100 active:scale-90"
+            class="p-2 bg-neon-red/10 text-neon-red rounded-lg opacity-0 group-hover:opacity-100 hover:bg-neon-red hover:text-white transition-all duration-300 transform scale-90 hover:scale-100 active:scale-95"
           >
-            <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 pointer-events-none"></i>
           </button>
         </div>
 
-        <!-- Name & Identity -->
+        <!-- Identity Section -->
         <div class="flex-1 min-w-0 mb-6 relative z-10">
-          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.25] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-2 min-h-[2.5em] mb-2">${member.name}</h4>
+          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.3] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-2 min-h-[2.6em] mb-2">${member.name}</h4>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5">
               <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF] animate-pulse"></span>
@@ -2286,19 +2289,19 @@ function renderMemberCardHtml(member: Member) {
           </div>
         </div>
 
-        <!-- Metric Grid -->
-        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 relative z-10">
-          <div class="space-y-1">
-            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Neural Score</span>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 relative z-10 px-1">
+          <div class="space-y-0.5">
+            <span class="block text-[7px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Neural Score</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-xl font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
-              <span class="text-[10px] text-neon-cyan/40 italic font-black uppercase">pts</span>
+              <span class="text-lg font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
+              <span class="text-[8px] text-neon-cyan/40 italic font-black uppercase">pts</span>
             </div>
           </div>
-          <div class="space-y-1 text-right">
-            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Max Chain</span>
+          <div class="space-y-0.5 text-right">
+            <span class="block text-[7px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Chain Status</span>
             <div class="flex items-baseline gap-1 justify-end">
-              <span class="text-xl font-black italic text-white/60 group-hover:text-white transition-colors">${member.max_streak || 0}</span>
+              <span class="text-lg font-black italic text-white/40 group-hover:text-white transition-colors">${member.max_streak || 0}</span>
             </div>
           </div>
         </div>
