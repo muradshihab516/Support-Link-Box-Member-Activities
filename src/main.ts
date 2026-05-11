@@ -1528,30 +1528,38 @@ function attachContentEvents() {
         // Robust Name Extraction Logic
         const lines = rawNames.split('\n');
         for (let line of lines) {
-          let cleaned = line.trim();
-          if (!cleaned) continue;
+          // If a line contains multiple @ symbols, it's likely multiple names
+          // e.g. "@Name1 @Name2"
+          let chunks: string[] = [];
+          if (line.includes('@')) {
+            chunks = line.split('@').map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
+          } else {
+            chunks = [line.trim()];
+          }
 
-          // 1. Remove common list numbering and prefixes (1., ১., 1️⃣, etc.)
-          // We target digits (0-9, ০-৯), symbols, and prefix noise
-          cleaned = cleaned.replace(/^[0-9০০-৯\.\s#*️⃣🔟\uFE0F\u20E3@।৷\-–—]+/, '');
-          
-          // 2. Aggressively strip any non-word characters from the start
-          // This handles cases like "@ @ Name" or ". Name" or "১. @ Name"
-          cleaned = cleaned.replace(/^[^a-zA-Z0-9\u0980-\u09FF]+/, '');
-          
-          // 3. Final cleanup of any leading @ or spaces
-          cleaned = cleaned.replace(/^[@\.\s]+/, '');
-          
-          cleaned = cleaned.trim();
+          for (let chunk of chunks) {
+            let cleaned = chunk;
+            if (!cleaned) continue;
 
-          // 2. Filter out keywords and short strings
-          const lower = cleaned.toLowerCase();
-          if (cleaned && 
-              cleaned.length >= 2 && 
-              !lower.includes("no post") && 
-              !lower.includes("points") && 
-              !lower.includes("sync")) {
-            namesList.push(cleaned);
+            // Aggressively remove prefixes: Numbers, symbols, separators at the start
+            let lastCleaned = "";
+            while (cleaned !== lastCleaned) {
+              lastCleaned = cleaned;
+              // Remove leading numbers (English/Bengali) and common delimiters
+              cleaned = cleaned.replace(/^[0-9০০-৯\.\s#*️⃣🔟\uFE0F\u20E3@।৷\-–—\/\\|_:;,)\]]+/, '');
+              // Remove any leading non-alphanumeric characters
+              cleaned = cleaned.replace(/^[^a-zA-Z0-9\u0980-\u09FF]+/, '');
+            }
+            
+            // Post-cleaning: handle any remaining @ or junk
+            cleaned = cleaned.replace(/@/g, ' ').replace(/\s+/g, ' ').trim();
+
+            const lower = cleaned.toLowerCase();
+            const isJunk = ["register", "members", "database", "system", "active", "points", "sync", "no post"].some(k => lower.includes(k));
+
+            if (cleaned && cleaned.length >= 2 && !isJunk) {
+              namesList.push(cleaned);
+            }
           }
         }
 
@@ -2240,46 +2248,58 @@ async function fetchHeatmapData() {
 function renderMemberCardHtml(member: Member) {
   return `
     <div class="group relative member-card" data-member-id="${member.id}">
-      <div class="glass-card-neon lighting-border p-4 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[1.5rem] bg-black/40">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-neon-cyan/10 to-transparent -mr-12 -mt-12 rounded-full"></div>
+      <div class="glass-card-neon lighting-border p-5 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] bg-black/40">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-neon-cyan/5 to-transparent -mr-16 -mt-16 rounded-full blur-2xl"></div>
         
-        <!-- Batch Selection Checkbox -->
-        <div class="absolute top-4 left-4 z-20">
-          <input 
-            type="checkbox" 
-            class="member-select-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-neon-cyan focus:ring-neon-cyan/50 cursor-pointer opacity-40 group-hover:opacity-100 transition-opacity" 
-            data-select-id="${member.id}"
-          >
-        </div>
-
-        <div class="flex items-center gap-3 mb-4 mt-2 relative z-10 pl-6">
-          <div class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center font-black text-neon-cyan italic text-xs group-hover:bg-white group-hover:text-black transition-all duration-500 shadow-xl shrink-0">
-            #${member.member_number}
+        <!-- Card Header -->
+        <div class="flex items-center justify-between mb-4 relative z-20">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <input 
+                type="checkbox" 
+                class="member-select-checkbox w-5 h-5 rounded-lg border border-white/10 bg-black/60 text-neon-cyan focus:ring-neon-cyan/50 focus:ring-offset-0 cursor-pointer opacity-20 group-hover:opacity-100 transition-all checked:opacity-100" 
+                data-select-id="${member.id}"
+              >
+            </div>
+            <div class="px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 text-[10px] font-black text-neon-cyan italic tracking-widest shadow-[0_0_15px_rgba(0,245,255,0.1)]">
+              #${String(member.member_number).padStart(2, '0')}
+            </div>
           </div>
-          <div class="flex-1 min-w-0">
-            <h4 class="font-black italic uppercase tracking-tight text-white text-[12px] sm:text-[14px] leading-tight group-hover:text-neon-cyan transition-colors duration-500 font-cinzel truncate">${member.name}</h4>
-            <p class="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em] text-white/40 mt-1 flex items-center gap-2 font-orbitron group-hover:text-neon-cyan/60 transition-colors">
-              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF] animate-pulse"></span>
-              ${calculateLevel(member.total_points || 0)}
-            </p>
-          </div>
+          
           <button 
             type="button"
             onclick="event.stopPropagation(); if(typeof window.initiateMemberPurge === 'function') window.initiateMemberPurge('${member.id}', '${member.name}')"
-            class="delete-single-btn p-2.5 bg-neon-red/20 text-neon-red rounded-xl opacity-100 hover:bg-neon-red hover:text-white transform transition-all duration-300 hover:scale-110 active:scale-90 z-30 flex items-center justify-center"
+            class="p-2.5 bg-neon-red/10 text-neon-red rounded-xl opacity-0 group-hover:opacity-100 hover:bg-neon-red hover:text-white transition-all duration-300 transform scale-90 hover:scale-100 active:scale-90"
           >
             <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 relative z-10">
-          <div class="text-left">
-            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Neural Pts</span>
-            <span class="text-xl font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
+        <!-- Name & Identity -->
+        <div class="flex-1 min-w-0 mb-6 relative z-10">
+          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.25] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-2 min-h-[2.5em] mb-2">${member.name}</h4>
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF] animate-pulse"></span>
+              <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-neon-cyan/80 font-orbitron">${calculateLevel(member.total_points || 0)}</span>
+            </div>
           </div>
-          <div class="text-right">
-            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1 italic font-orbitron">Max Chain</span>
-            <span class="text-xl font-black italic text-white/40 group-hover:text-white/80 transition-colors">${member.max_streak || 0}</span>
+        </div>
+
+        <!-- Metric Grid -->
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 relative z-10">
+          <div class="space-y-1">
+            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Neural Score</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-xl font-black italic text-white group-hover:text-neon-cyan transition-colors">${member.total_points || 0}</span>
+              <span class="text-[10px] text-neon-cyan/40 italic font-black uppercase">pts</span>
+            </div>
+          </div>
+          <div class="space-y-1 text-right">
+            <span class="block text-[8px] font-black text-white/20 uppercase tracking-[0.3em] font-orbitron">Max Chain</span>
+            <div class="flex items-baseline gap-1 justify-end">
+              <span class="text-xl font-black italic text-white/60 group-hover:text-white transition-colors">${member.max_streak || 0}</span>
+            </div>
           </div>
         </div>
       </div>
