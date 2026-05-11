@@ -716,7 +716,7 @@ function renderSidebar() {
              <i data-lucide="waves" class="w-6 h-6 text-white animate-pulse"></i>
           </div>
         </div>
-        <h2 class="text-white font-black italic tracking-[0.1em] uppercase text-2xl font-cinzel">SUPPORT BOX</h2>
+        <h2 class="text-white font-black italic tracking-[0.1em] uppercase text-lg font-cinzel">SUPPORT BOX</h2>
       </div>
 
       <div class="flex-1 overflow-y-auto px-4 py-4 space-y-8 relative z-10">
@@ -726,7 +726,7 @@ function renderSidebar() {
             ${menuItems.map((item) => `
               <button 
                 data-route="${item.id}"
-                class="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-[12px] font-black tracking-widest uppercase transition-all duration-300 group
+                class="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-[11px] font-black tracking-widest uppercase transition-all duration-300 group
                 ${currentRoute === item.id ? "bg-white text-black shadow-lg scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}"
               >
                 <i data-lucide="${item.icon}" class="w-5 h-5 ${currentRoute === item.id ? "text-black" : "text-neon-cyan"} transition-all"></i>
@@ -744,7 +744,7 @@ function renderSidebar() {
               <button 
                 data-route="${item.locked ? '' : item.id}"
                 data-locked="${item.locked || false}"
-                class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 group
+                class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all duration-300 group
                 ${currentRoute === item.id ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5"}
                 ${item.locked ? "opacity-30" : ""}"
               >
@@ -801,7 +801,7 @@ function renderLogin() {
               <p class="text-[10px] font-black uppercase tracking-[0.6em] text-neon-cyan font-orbitron italic">Secure Entry</p>
               <span class="w-12 h-px bg-gradient-to-l from-transparent via-neon-cyan to-transparent"></span>
            </div>
-           <h1 class="text-6xl md:text-7xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
+           <h1 class="text-2xl sm:text-3xl md:text-4xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
               SUPPORT LINK<br/>
               <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">BOX</span>
            </h1>
@@ -921,8 +921,8 @@ function renderDashboard() {
                 <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
                 <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.6em] font-orbitron italic">System Online</p>
               </div>
-              <h1 class="text-5xl md:text-6xl font-black italic tracking-tighter uppercase font-cinzel text-white leading-none">
-                SUPPORT LINK <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent underline decoration-white/10 decoration-4 underline-offset-8">BOX</span>
+              <h1 class="text-2xl md:text-3xl font-black italic tracking-tighter uppercase font-cinzel text-white leading-none">
+                SUPPORT LINK <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent underline decoration-white/10 decoration-4 underline-offset-4">BOX</span>
               </h1>
             </div>
           </div>
@@ -969,7 +969,7 @@ function renderDashboard() {
                 <div class="flex items-center gap-2 mb-2">
                   <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] italic font-orbitron">${tool.desc}</p>
                 </div>
-                <h3 class="text-xl md:text-2xl font-black italic uppercase tracking-widest leading-none transition-all duration-700 ${tool.color}">${tool.label}</h3>
+                <h3 class="text-base sm:text-lg font-black italic uppercase tracking-widest leading-none transition-all duration-700 ${tool.color}">${tool.label}</h3>
               </div>
             </div>
           </button>
@@ -997,7 +997,7 @@ function renderDashboard() {
               </div>
               <div class="space-y-3">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-lg font-black uppercase text-white tracking-tighter italic group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/30 decoration-2 underline-offset-8">${tool.label}</h4>
+                  <h4 class="text-xs sm:text-sm font-black uppercase text-white tracking-tighter italic group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/30 decoration-2 underline-offset-4">${tool.label}</h4>
                   ${tool.locked ? '<i data-lucide="lock" class="w-3 h-3 text-neon-pink"></i>' : ''}
                 </div>
                 <p class="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic font-orbitron group-hover:text-white/60 transition-colors">${tool.desc}</p>
@@ -1047,32 +1047,46 @@ function renderMembers() {
         </button>
       </div>
 
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
         <div>
           <div class="flex items-center gap-3 mb-2">
             <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
             <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Wave Registry Protocol</p>
           </div>
-          <h1 class="text-5xl font-black italic tracking-tighter uppercase whitespace-nowrap">
+          <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter uppercase whitespace-nowrap">
             MEMBERS <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent underline decoration-neon-cyan/30 decoration-4 underline-offset-8">DATABASE</span>
           </h1>
         </div>
         
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
           <div class="relative group min-w-[300px]">
              <div class="absolute -inset-1 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition-all"></div>
              <input id="member-search-input" type="text" placeholder="SEARCH IDENTITY..." class="w-full h-16 bg-black/60 border border-white/10 rounded-2xl px-12 text-sm font-bold text-white focus:outline-none focus:border-neon-cyan/40 transition-all placeholder:text-white/20 backdrop-blur-xl">
              <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-neon-cyan transition-colors"></i>
           </div>
 
-          <button id="add-member-btn" class="relative group h-16 px-12 overflow-hidden rounded-[1.5rem] bg-gradient-to-r from-neon-cyan via-white to-neon-purple text-black font-black uppercase tracking-[0.4em] text-[13px] transition-all hover:scale-[1.05] shadow-[0_0_40px_rgba(0,245,255,0.2)] active:scale-[0.98] font-orbitron">
-             <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-white to-neon-purple opacity-0 group-hover:opacity-20 transition-opacity"></div>
-             <div class="flex items-center gap-4 relative z-10 italic">
-               <i data-lucide="plus-circle" class="w-6 h-6"></i>
-               Register Personnel
-             </div>
-          </button>
+          <div class="flex gap-2">
+            <button id="batch-delete-btn" class="h-16 px-6 rounded-2xl bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-widest text-[10px] hover:bg-neon-red hover:text-white transition-all hidden flex items-center gap-3">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              Batch Purge (<span id="selected-count">0</span>)
+            </button>
+            <button id="add-member-btn" class="relative group h-16 px-8 sm:px-12 overflow-hidden rounded-2xl bg-gradient-to-r from-neon-cyan via-white to-neon-purple text-black font-black uppercase tracking-widest text-[11px] transition-all hover:scale-[1.05] shadow-[0_0_40px_rgba(0,245,255,0.2)] active:scale-[0.98] font-orbitron shrink-0">
+               <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-white to-neon-purple opacity-0 group-hover:opacity-20 transition-opacity"></div>
+               <div class="flex items-center gap-3 relative z-10 italic">
+                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                 Register
+               </div>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <!-- Bulk Selection Toolbar -->
+      <div id="bulk-selection-toolbar" class="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/5 rounded-2xl mb-4 hidden">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="select-all-members" class="w-4 h-4 rounded border-white/10 bg-transparent text-neon-cyan focus:ring-neon-cyan">
+          <span class="text-[10px] font-black uppercase tracking-widest text-white/40">Select All in View</span>
+        </label>
       </div>
     </header>
 
@@ -1080,6 +1094,38 @@ function renderMembers() {
       <div class="p-10 text-center col-span-full">
          <div class="w-8 h-8 border-2 border-white/5 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
          <p class="text-[8px] font-black uppercase text-white/20 tracking-widest italic">Syncing matrix data...</p>
+      </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="member-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl hidden">
+      <div class="w-full max-w-xl glass-card p-8 md:p-12 rounded-[2.5rem] border-white/10 animate-in zoom-in duration-500 relative">
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+             <div class="w-1.5 h-6 bg-neon-cyan rounded-full"></div>
+             <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-orbitron italic">Personnel Registry</p>
+          </div>
+          <h2 class="text-3xl font-black italic uppercase font-cinzel tracking-tighter text-white">Batch Enrollment</h2>
+          <p class="text-[9px] text-white/20 font-black uppercase mt-2 tracking-widest italic">Input identities below for matrix synchronization</p>
+        </div>
+
+        <form id="member-form" class="space-y-6">
+          <div class="space-y-3">
+            <label class="text-[10px] font-black uppercase tracking-widest text-white/40 px-2">Identity Sequence</label>
+            <textarea 
+              name="names" 
+              required 
+              rows="6"
+              class="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-sm font-bold text-white focus:outline-none focus:border-neon-cyan/40 transition-all placeholder:text-white/5 resize-none font-rajdhani"
+              placeholder="1. @Identity One&#10;২. @Identity Two&#10;1️⃣ @Identity Three&#10;@Identity Four"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <button type="button" id="close-modal" class="py-4 bg-white/[0.03] border border-white/5 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all text-white/40 hover:text-white">Abort</button>
+            <button type="submit" id="confirm-registration-btn" class="py-4 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all">Initialize Enrollment</button>
+          </div>
+        </form>
       </div>
     </div>
   `;
@@ -1329,7 +1375,7 @@ function renderLeaderboard() {
             <span class="w-12 h-px bg-neon-pink/40"></span>
             <p class="text-neon-pink text-[10px] font-black uppercase tracking-[0.4em] italic font-orbitron">Performance Pulse</p>
           </div>
-          <h1 class="text-7xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
+          <h1 class="text-4xl md:text-5xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
             GLOBAL<br/><span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">LEADERBOARD</span>
           </h1>
         </div>
@@ -1370,7 +1416,7 @@ function renderAudit() {
           <span class="w-12 h-px bg-neon-purple/40"></span>
           <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em] italic font-orbitron">Archive Protocol</p>
         </div>
-        <h1 class="text-7xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
+        <h1 class="text-4xl md:text-5xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
           SYSTEM<br/><span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">AUDIT</span>
         </h1>
       </div>
@@ -1448,53 +1494,71 @@ function attachContentEvents() {
 
     const searchInput = document.getElementById("member-search-input") as HTMLInputElement;
     let searchTimeout: any;
-    searchInput?.addEventListener("input", (e) => {
-      const val = (e.target as HTMLInputElement).value;
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        filterMembersInList(val);
-      }, 300);
-    });
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        const val = (e.target as HTMLInputElement).value;
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          filterMembersInList(val);
+        }, 300);
+      };
+    }
 
-    document.getElementById("add-member-btn")?.addEventListener("click", () => {
+    const addBtn = document.getElementById("add-member-btn");
+    if (addBtn) addBtn.onclick = () => {
       document.getElementById("member-modal")?.classList.remove("hidden");
-    });
+    };
 
-    document.getElementById("close-modal")?.addEventListener("click", () => {
+    const closeBtn = document.getElementById("close-modal");
+    if (closeBtn) closeBtn.onclick = () => {
       document.getElementById("member-modal")?.classList.add("hidden");
-    });
+    };
 
-    document
-      .getElementById("member-form")
-      ?.addEventListener("submit", async (e) => {
+    const memberForm = document.getElementById("member-form");
+    if (memberForm) {
+      memberForm.onsubmit = async (e) => {
         e.preventDefault();
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
         const rawNames = formData.get("names") as string;
 
         const namesList: string[] = [];
-        const namePattern =
-          /(?:@|\d+[\.\s]*@+)\s*([^@\n\r]+?)(?=(?:\s+\d+\.|\s+@|\s+post|\s+no|\s+points|\s+pts|\s+active|\n|\r|$))/gi;
-        let m;
-        while ((m = namePattern.exec(rawNames)) !== null) {
-          if (m[1]) {
-            const cleaned = m[1].trim();
-            if (cleaned && cleaned.toLowerCase() !== "no post") {
-              namesList.push(cleaned);
-            }
+        // ... (Extraction logic below)
+        
+        // Robust Name Extraction Logic
+        const lines = rawNames.split('\n');
+        for (let line of lines) {
+          let cleaned = line.trim();
+          if (!cleaned) continue;
+
+          // 1. Remove common list numbering and prefixes (1., ১., 1️⃣, etc.)
+          // We target digits (0-9, ০-৯), symbols, and prefix noise
+          cleaned = cleaned.replace(/^[0-9০০-৯\.\s#*️⃣🔟\uFE0F\u20E3@।৷\-–—]+/, '');
+          
+          // 2. Aggressively strip any non-word characters from the start
+          // This handles cases like "@ @ Name" or ". Name" or "১. @ Name"
+          cleaned = cleaned.replace(/^[^a-zA-Z0-9\u0980-\u09FF]+/, '');
+          
+          // 3. Final cleanup of any leading @ or spaces
+          cleaned = cleaned.replace(/^[@\.\s]+/, '');
+          
+          cleaned = cleaned.trim();
+
+          // 2. Filter out keywords and short strings
+          const lower = cleaned.toLowerCase();
+          if (cleaned && 
+              cleaned.length >= 2 && 
+              !lower.includes("no post") && 
+              !lower.includes("points") && 
+              !lower.includes("sync")) {
+            namesList.push(cleaned);
           }
         }
 
         if (namesList.length === 0) {
-          namesList.push(
-            ...rawNames
-              .split("\n")
-              .map((l) => l.trim())
-              .filter((l) => l.length > 0 && l.toLowerCase() !== "no post"),
-          );
+          alert("Matrix Error: No valid identifications found in current stream. Please ensure names follow the enrollment format.");
+          return;
         }
-
-        if (namesList.length === 0) return;
 
         const btn = document.getElementById(
           "confirm-registration-btn",
@@ -1566,7 +1630,71 @@ function attachContentEvents() {
           btn.textContent = "Initialize Batch Registration";
           btn.disabled = false;
         }
-      });
+      };
+    }
+
+    // --- Header-level Batch Logic (Outside the form handler) ---
+    const selectAllToggle = document.getElementById("select-all-members") as HTMLInputElement | null;
+    const executeBatchPurge = document.getElementById("batch-delete-btn") as HTMLButtonElement | null;
+
+    if (selectAllToggle) {
+      selectAllToggle.onchange = () => {
+        const list = document.getElementById("members-list");
+        if (!list) return;
+        const allListCbs = list.querySelectorAll(".member-select-checkbox") as NodeListOf<HTMLInputElement>;
+        allListCbs.forEach(cb => {
+          const cardParent = cb.closest(".member-card") as HTMLElement;
+          if (cardParent && !cardParent.classList.contains("hidden")) {
+            cb.checked = (selectAllToggle as HTMLInputElement).checked;
+          }
+        });
+        const refreshUI = (window as any).refreshBatchUI;
+        if (refreshUI) refreshUI();
+      };
+    }
+
+    if (executeBatchPurge) {
+      executeBatchPurge.onclick = async () => {
+        console.log("Execute Batch Purge Initialized");
+        const list = document.getElementById("members-list");
+        if (!list) return;
+        
+        const allCbs = list.querySelectorAll(".member-select-checkbox") as NodeListOf<HTMLInputElement>;
+        const selectedIds = Array.from(allCbs)
+          .filter(cb => cb.checked)
+          .map(cb => (cb as HTMLElement).dataset.selectId)
+          .filter(id => !!id) as string[];
+        
+        if (selectedIds.length === 0) {
+          showNotice("No Selection", "Please mark identities for purging.", "warning");
+          return;
+        }
+
+        if (confirm(`Authorize mass deletion of ${selectedIds.length} units?`)) {
+          showNotice("Batch Purge", "Initiating mass removal...", "info");
+          const originalBtnLabel = executeBatchPurge.innerHTML;
+          executeBatchPurge.innerHTML = "PURGING...";
+          executeBatchPurge.disabled = true;
+
+          try {
+            const { error } = await supabase.from("members").delete().in("id", selectedIds);
+            if (error) throw error;
+
+            await logAudit("MEMBER_BATCH_DELETE", `Mass purge of ${selectedIds.length} identities.`);
+            membersCache = null;
+            await fetchMembers();
+            showNotice("Success", `${selectedIds.length} identifies purged.`, "success");
+          } catch (err: any) {
+            console.error("Batch Delete Error Logged:", err);
+            alert("Purge Failed: " + (err.message || String(err)));
+          } finally {
+            executeBatchPurge.disabled = false;
+            executeBatchPurge.innerHTML = originalBtnLabel;
+            refreshIcons();
+          }
+        }
+      };
+    }
   } else if (currentRoute === "activity") {
     const textarea = document.getElementById(
       "activity-data",
@@ -2114,7 +2242,17 @@ function renderMemberCardHtml(member: Member) {
     <div class="group relative member-card" data-member-id="${member.id}">
       <div class="glass-card-neon lighting-border p-4 h-full flex flex-col border-white/10 hover:border-white/30 transition-all duration-500 cursor-pointer overflow-hidden rounded-[1.5rem] bg-black/40">
         <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-neon-cyan/10 to-transparent -mr-12 -mt-12 rounded-full"></div>
-        <div class="flex items-center gap-3 mb-4 relative z-10">
+        
+        <!-- Batch Selection Checkbox -->
+        <div class="absolute top-4 left-4 z-20">
+          <input 
+            type="checkbox" 
+            class="member-select-checkbox w-4 h-4 rounded border-white/10 bg-black/40 text-neon-cyan focus:ring-neon-cyan/50 cursor-pointer opacity-40 group-hover:opacity-100 transition-opacity" 
+            data-select-id="${member.id}"
+          >
+        </div>
+
+        <div class="flex items-center gap-3 mb-4 mt-2 relative z-10 pl-6">
           <div class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center font-black text-neon-cyan italic text-xs group-hover:bg-white group-hover:text-black transition-all duration-500 shadow-xl shrink-0">
             #${member.member_number}
           </div>
@@ -2126,12 +2264,11 @@ function renderMemberCardHtml(member: Member) {
             </p>
           </div>
           <button 
-            data-delete-member="${member.id}"
-            data-member-name="${member.name}"
-            class="opacity-0 group-hover:opacity-100 p-2 bg-neon-red/20 text-neon-red rounded-xl transition-all duration-500 hover:scale-110 active:scale-95"
-            onclick="event.stopPropagation()"
+            type="button"
+            onclick="event.stopPropagation(); if(typeof window.initiateMemberPurge === 'function') window.initiateMemberPurge('${member.id}', '${member.name}')"
+            class="delete-single-btn p-2.5 bg-neon-red/20 text-neon-red rounded-xl opacity-100 hover:bg-neon-red hover:text-white transform transition-all duration-300 hover:scale-110 active:scale-90 z-30 flex items-center justify-center"
           >
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
           </button>
         </div>
 
@@ -2154,31 +2291,88 @@ function attachMemberCardEvents(data: Member[]) {
   const list = document.getElementById("members-list");
   if (!list) return;
 
-  // Member details click
-  list.querySelectorAll(".member-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      const id = (card as HTMLElement).dataset.memberId;
+  // 1. Definition of UI update logic for selection (Used by check-boxes)
+  const refreshBatchUI = () => {
+    const listEl = document.getElementById("members-list");
+    if (!listEl) return;
+    
+    const cbs = listEl.querySelectorAll(".member-select-checkbox") as NodeListOf<HTMLInputElement>;
+    const selected = Array.from(cbs).filter(cb => cb.checked);
+    
+    const count = selected.length;
+    const batchBtn = document.getElementById("batch-delete-btn") as HTMLButtonElement | null;
+    const countLabel = document.getElementById("selected-count");
+    const selectionToolbar = document.getElementById("bulk-selection-toolbar");
+    const allToggle = document.getElementById("select-all-members") as HTMLInputElement | null;
+
+    if (countLabel) countLabel.textContent = count.toString();
+    
+    if (count > 0) {
+      batchBtn?.classList.remove("hidden");
+      selectionToolbar?.classList.remove("hidden");
+    } else {
+      batchBtn?.classList.add("hidden");
+      selectionToolbar?.classList.add("hidden");
+      if (allToggle) allToggle.checked = false;
+    }
+  };
+  (window as any).refreshBatchUI = refreshBatchUI;
+
+  // 2. Global Purge Handler (Guaranteed availability)
+  (window as any).initiateMemberPurge = async (id: string, name: string) => {
+    if (!id) return;
+    
+    // Explicit console logging for debugging
+    console.log("DELETION PROTOCOL INITIATED:", name, id);
+
+    if (confirm(`AUTHORIZE IMMEDIATE PURGE FOR IDENTITY: ${name}?`)) {
+      showNotice("Processing", `Establishing secure link to database...`, "info");
+      try {
+        const { error } = await supabase.from("members").delete().eq("id", id);
+        if (error) throw error;
+        
+        await logAudit("MEMBER_DELETE", `Purged identity: ${name}`);
+        membersCache = null;
+        await fetchMembers();
+        showNotice("Success", `${name} purged from Matrix successfully.`, "success");
+      } catch (err: any) {
+        console.error("CRITICAL PURGE ERROR:", err);
+        alert("Operation Failed: " + (err.message || String(err)));
+      }
+    }
+  };
+
+  // 3. Delegation for Card Details and Checkboxes
+  list.onclick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // Stop propagation for checkboxes
+    if (target.closest(".member-select-checkbox")) {
+      e.stopPropagation();
+      return;
+    }
+
+    // Details logic
+    const card = target.closest(".member-card") as HTMLElement;
+    if (card) {
+      const id = card.dataset.memberId;
       const member = data.find((m) => m.id === id);
       if (member) {
         selectedMember = member;
         render();
       }
-    });
+    }
+  };
+
+  // 4. Checkbox change listeners for immediate UI feedback
+  list.querySelectorAll(".member-select-checkbox").forEach(cb => {
+    (cb as HTMLInputElement).onchange = (e) => {
+      e.stopPropagation();
+      refreshBatchUI();
+    };
   });
 
-  list.querySelectorAll("[data-delete-member]").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      const id = (e.currentTarget as HTMLButtonElement).dataset.deleteMember;
-      const name = (e.currentTarget as HTMLButtonElement).dataset.memberName;
-      if (confirm(`INITIATE DELETION PROTOCOL FOR ${name}?`)) {
-        await supabase.from("members").delete().eq("id", id);
-        await logAudit("MEMBER_DELETE", `Purged identity: ${name}`);
-        membersCache = null;
-        fetchMembers();
-      }
-    });
-  });
-  
+  refreshBatchUI();
   refreshIcons();
 }
 
@@ -2200,7 +2394,7 @@ function filterMembersInList(query: string) {
   }
   
   list.innerHTML = filtered.map(member => renderMemberCardHtml(member)).join('');
-  attachMemberCardEvents(membersCache);
+  attachMemberCardEvents(filtered);
 }
 
 async function fetchMembers() {
