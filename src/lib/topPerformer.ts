@@ -66,7 +66,7 @@ export function renderTopPerformer() {
 
         <div id="tp-preview-pane" class="hidden lg:block">
           <div class="glass-card p-8 rounded-3xl border-white/5 h-full">
-            <h3 class="text-white text-[10px] font-black uppercase tracking-widest mb-6 border-l-2 border-neon-cyan pl-4">Cycle Preview</h3>
+            <h3 class="text-white text-[10px] font-black uppercase tracking-widest mb-6 border-l-2 border-neon-cyan pl-4">Day Preview</h3>
             <div id="tp-preview-content" class="space-y-4 max-h-[500px] overflow-y-auto scrollbar-hide pr-2 text-xs">
                <p class="text-gray-600 italic">No data parsed yet.</p>
             </div>
@@ -134,7 +134,7 @@ export function renderTopPerformer() {
 
           <div class="space-y-4">
              <div class="flex justify-between items-center">
-                <h3 class="text-white text-[10px] font-black uppercase tracking-widest border-l-2 border-neon-blue pl-4">Cycle Detailed Report</h3>
+                <h3 class="text-white text-[10px] font-black uppercase tracking-widest border-l-2 border-neon-blue pl-4">Day Detailed Report</h3>
                 <button id="tp-save-detail" class="btn-tp-action text-neon-blue hover:text-white transition-colors">
                   <i data-lucide="download" class="w-5 h-5"></i>
                 </button>
@@ -157,7 +157,7 @@ export function renderTopPerformer() {
         <div class="flex justify-center pt-8 border-t border-white/5">
            <button id="tp-reset-btn" class="px-8 py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-neon-red hover:text-white transition-all transform active:scale-95 flex items-center gap-3">
               <i data-lucide="redo" class="w-4 h-4"></i>
-              New Cycle
+              New Day
            </button>
         </div>
       </div>
@@ -390,12 +390,12 @@ function executeGeneration(data: any) {
   const wLabel = data.weekLabel || `${activeDays.length} Day Operation`;
   
   const labelEl = document.getElementById('tp-week-label');
-  if (labelEl) labelEl.textContent = `${wLabel} CYCLE`;
+  if (labelEl) labelEl.textContent = `${wLabel} DAYS`;
 
   const brand1 = document.getElementById('tp-rank-brand');
   const brand2 = document.getElementById('tp-detail-brand');
   if (brand1) brand1.textContent = data.weekLabel ? `🏆 THE TOP PERFORMER — ${data.weekLabel}` : `🏆 THE TOP PERFORMER`;
-  if (brand2) brand2.textContent = data.weekLabel ? `📊 WEEKLY PERFORMANCE DETAIL — ${data.weekLabel}` : `📊 WEEKLY PERFORMANCE DETAIL`;
+  if (brand2) brand2.textContent = data.weekLabel ? `📊 DAYS PERFORMANCE DETAIL — ${data.weekLabel}` : `📊 DAYS PERFORMANCE DETAIL`;
 
   renderTables(sorted, data.days);
 

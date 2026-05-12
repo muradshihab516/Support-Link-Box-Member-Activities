@@ -48,6 +48,12 @@ import { Route, Member, AuditLog, calculateLevel } from "./types";
 import { getAdminName, ADMIN_NAMES, cleanName } from "./lib/utils";
 import { parseActivityBatch } from "./lib/parser";
 
+function getAvatarUrl(name: string): string {
+  const seed = encodeURIComponent(name);
+  // professional initials style with vibrant colors
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=00f5ff,9b51e0,ff0080,00ff88,ff8200&fontWeight=800&fontSize=38`;
+}
+
 import { renderAdminPanel, initializeAdminPanel } from "./lib/admin";
 import { renderListGenerator, initializeListGenerator } from "./lib/listTools";
 import { renderTopPerformer, initializeTopPerformer } from "./lib/topPerformer";
@@ -531,7 +537,7 @@ function render() {
             <div class="w-6 h-6 bg-neon-pink rounded flex items-center justify-center shadow-[0_0_10px_#FF0080]">
               <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
             </div>
-            <span class="font-orbitron font-black text-[10px] whitespace-nowrap uppercase tracking-[0.4em] text-neon-cyan/80 font-orbitron italic">WAVE SYSTEM</span>
+            <span class="font-orbitron font-black text-[10px] whitespace-nowrap uppercase tracking-[0.4em] text-neon-cyan/80 font-orbitron italic">LINK BOX</span>
           </div>
           <button id="toggle-sidebar" class="text-white p-2">
             <i data-lucide="${isSidebarOpen ? "x" : "layout-dashboard"}" class="w-6 h-6"></i>
@@ -571,50 +577,51 @@ function renderMemberDetail(member: Member) {
 
   return `
     <div class="animate-in fade-in slide-in-from-bottom-2">
-      <button id="back-to-directory" class="flex items-center gap-1.5 text-neon-cyan/40 hover:text-neon-cyan font-black text-[9px] uppercase tracking-widest mb-4 transition-all group">
+      <button id="back-to-directory" class="flex items-center gap-1.5 text-neon-cyan hover:text-white font-black text-[9px] uppercase tracking-widest mb-4 transition-all group">
         <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
-        Back to Matrix
+        Back to Directory
       </button>
 
-      <div class="glass-card mb-4 p-1 rounded-2xl border-white/5 relative overflow-hidden">
-        <div class="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
-           <div class="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 relative">
-             <i data-lucide="users" class="w-8 h-8 text-neon-cyan opacity-40"></i>
-             <div class="absolute -bottom-2 bg-neon-pink px-2 py-0.5 rounded-full text-[8px] font-black italic shadow-[0_0_10px_#FF0080]">#${member.member_number}</div>
+      <div class="glass-card mb-4 p-1 rounded-2xl border-white/5 relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan/10 via-transparent to-neon-purple/10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 relative z-10">
+           <div class="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 relative overflow-hidden">
+             <img src="${getAvatarUrl(member.name)}" class="w-full h-full object-cover" />
+             <div class="absolute -bottom-2 bg-neon-pink text-white px-2 py-0.5 rounded-full text-[8px] font-black italic shadow-lg z-20">#${member.member_number}</div>
            </div>
            <div class="text-center md:text-left flex-1 min-w-0">
-             <h1 class="text-2xl font-black italic tracking-tighter text-white uppercase mb-2 truncate">${member.name}</h1>
+             <h1 class="text-2xl font-black italic tracking-tighter uppercase font-cinzel mb-2 truncate">${member.name}</h1>
              <div class="flex flex-wrap justify-center md:justify-start gap-2">
-               <span class="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[8px] font-black uppercase text-neon-cyan tracking-widest">${calculateLevel(member.total_points)}</span>
+               <span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[8px] font-black uppercase text-neon-cyan tracking-widest">${calculateLevel(member.total_points)}</span>
                <span class="px-2 py-0.5 bg-neon-green/10 border border-neon-green/20 rounded text-[8px] font-black uppercase text-neon-green tracking-widest">Active Member</span>
-               <span class="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[8px] font-black uppercase text-white/20 tracking-widest">Last Activity: ${daysSinceSync}d</span>
+               <span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[8px] font-black uppercase text-white/30 tracking-widest">In Sync: ${daysSinceSync}d</span>
              </div>
            </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="glass-card p-4 border-white/5 rounded-xl flex flex-col items-center">
-          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Total Unit Syncs</span>
-          <span class="text-2xl font-black italic text-white">${member.total_syncs || 0}</span>
-          <div class="w-8 h-0.5 bg-neon-cyan mt-3 rounded-full opacity-30 shadow-[0_0_8px_#00FFFF]"></div>
+        <div class="glass-card p-6 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Total Points</span>
+          <span class="text-2xl font-black italic text-white">${member.total_points || 0}</span>
+          <div class="w-8 h-0.5 bg-neon-cyan mt-3 rounded-full opacity-30 shadow-[0_0_10px_#00FFFF]"></div>
         </div>
-        <div class="glass-card p-4 border-white/5 rounded-xl flex flex-col items-center">
-          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Active Chain</span>
+        <div class="glass-card p-6 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Current Streak</span>
           <span class="text-2xl font-black italic text-neon-pink">${member.current_streak || 0}d</span>
-          <div class="w-8 h-0.5 bg-neon-pink mt-3 rounded-full opacity-30 shadow-[0_0_8px_#FF0080]"></div>
+          <div class="w-8 h-0.5 bg-neon-pink mt-3 rounded-full opacity-30 shadow-[0_0_10px_#FF0080]"></div>
         </div>
-        <div class="glass-card p-4 border-white/5 rounded-xl flex flex-col items-center">
-          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Max Chain</span>
+        <div class="glass-card p-6 border-white/5 rounded-2xl flex flex-col items-center">
+          <span class="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">Max Streak</span>
           <span class="text-2xl font-black italic text-neon-green">${member.max_streak || 0}d</span>
-          <div class="w-8 h-0.5 bg-neon-green mt-3 rounded-full opacity-30 shadow-[0_0_10px_#39FF14]"></div>
+          <div class="w-8 h-0.5 bg-neon-green mt-3 rounded-full opacity-30 shadow-[0_0_10px_#00FF88]"></div>
         </div>
       </div>
 
-      <div class="glass-card p-5 rounded-xl border-white/5 bg-black/20">
-        <h3 class="font-orbitron font-black text-[9px] uppercase tracking-[0.3em] mb-4 text-white/20">Archive Interaction Logs</h3>
+      <div class="glass-card p-6 rounded-2xl border-white/5">
+        <h3 class="font-orbitron font-black text-[9px] uppercase tracking-[0.3em] mb-4 text-white/20 italic">Timeline Analysis</h3>
         <div id="member-logs" class="space-y-2">
-           <p class="text-[9px] font-bold text-white/10 animate-pulse italic">Deciphering logs...</p>
+           <p class="text-[9px] font-bold text-white/5 italic">Syncing event logs...</p>
         </div>
       </div>
     </div>
@@ -675,7 +682,7 @@ function renderSidebar() {
   ];
 
   const isAdmin = user?.email && ADMIN_NAMES[user.email];
-  const adminName = isAdmin ? ADMIN_NAMES[user.email] : "Agent";
+  const adminName = isAdmin ? ADMIN_NAMES[user.email] : "Admin";
 
   const extendedItems = [
     { id: "gapchecker", label: "Gap Checker", icon: "scan-search" },
@@ -685,70 +692,79 @@ function renderSidebar() {
   ];
 
   return `
-    <aside class="w-52 h-full flex flex-col bg-[#050508] border-r border-white/10 animate-in slide-in-from-left-2 duration-500 select-none shrink-0 relative overflow-hidden z-50">
-      <!-- Subtle Glow Sidebar -->
-      <div class="absolute -top-32 -left-32 w-80 h-80 bg-neon-cyan/5 blur-[100px] rounded-full"></div>
+    <aside class="w-64 h-full flex flex-col bg-black/40 backdrop-blur-2xl border-r border-white/5 animate-in slide-in-from-left-2 duration-500 select-none shrink-0 relative z-50">
+      <div class="absolute inset-0 bg-gradient-to-b from-neon-cyan/5 via-transparent to-neon-purple/5 pointer-events-none"></div>
       
-      <div class="p-8 mb-6 flex items-center gap-4 relative z-10 border-b border-white/10">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-cyan to-neon-purple p-[1px]">
-          <div class="w-full h-full rounded-[0.9rem] bg-black flex items-center justify-center">
-             <i data-lucide="waves" class="w-6 h-6 text-white animate-pulse"></i>
-          </div>
+      <div class="p-8 mb-6 flex items-center gap-4 border-b border-white/5 relative z-10 transition-all duration-700 bg-black/20">
+        <div class="w-11 h-11 rounded-[1.2rem] bg-gradient-to-br from-neon-cyan via-white to-neon-purple p-px group cursor-pointer hover:rotate-12 transition-all duration-500 shadow-lg">
+           <div class="w-full h-full bg-black rounded-[calc(1.2rem-1px)] flex items-center justify-center text-white">
+              <i data-lucide="waves" class="w-6 h-6 animate-pulse text-neon-cyan"></i>
+           </div>
         </div>
-        <h2 class="text-white font-black italic tracking-[0.1em] uppercase text-lg font-cinzel">SUPPORT BOX</h2>
+        <div class="space-y-0.5">
+           <h2 class="text-white font-black tracking-[0.2em] uppercase text-xs sm:text-sm font-cinzel italic leading-none">SUPPORT BOX</h2>
+           <p class="text-[7px] font-black uppercase tracking-[0.4em] text-white/30 font-orbitron">System Control</p>
+        </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-4 py-4 space-y-8 relative z-10">
+      <div class="flex-1 overflow-y-auto px-4 py-4 space-y-8 relative z-10 custom-scrollbar">
         <div>
-          <p class="text-[9px] font-black uppercase text-white/30 tracking-[0.4em] mb-4 italic px-4 font-orbitron">Main Menu</p>
-          <nav class="space-y-2">
+          <p class="text-[9px] font-black uppercase text-white/10 tracking-[0.4em] mb-4 px-4 font-orbitron italic">Main Registry</p>
+          <nav class="space-y-1.5">
             ${menuItems.map((item) => `
               <button 
                 data-route="${item.id}"
-                class="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-[11px] font-black tracking-widest uppercase transition-all duration-300 group
-                ${currentRoute === item.id ? "bg-white text-black shadow-lg scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}"
+                class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-[10px] sm:text-[11px] font-black tracking-[0.2em] uppercase transition-all duration-300 relative group overflow-hidden
+                ${currentRoute === item.id ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white hover:bg-white/[0.04]"}"
               >
-                <i data-lucide="${item.icon}" class="w-5 h-5 ${currentRoute === item.id ? "text-black" : "text-neon-cyan"} transition-all"></i>
-                <span class="font-orbitron">${item.label}</span>
-                ${currentRoute === item.id ? '<div class="ml-auto w-2 h-2 rounded-full bg-black"></div>' : ''}
+                ${currentRoute === item.id ? `<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-neon-cyan rounded-full shadow-[0_0_10px_#00F5FF]"></div>` : ""}
+                <div class="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <i data-lucide="${item.icon}" class="w-4 h-4 ${currentRoute === item.id ? "text-neon-cyan" : "text-white/30"}"></i>
+                </div>
+                <span class="font-orbitron italic">${item.label}</span>
               </button>
             `).join("")}
           </nav>
         </div>
 
         <div>
-          <p class="text-[9px] font-black uppercase text-white/30 tracking-[0.4em] mb-4 italic px-4 font-orbitron">Tools</p>
-          <nav class="space-y-2">
+          <p class="text-[9px] font-black uppercase text-white/10 tracking-[0.4em] mb-4 px-4 font-orbitron italic">Subsystems</p>
+          <nav class="space-y-1.5">
             ${extendedItems.map((item) => `
               <button 
                 data-route="${item.locked ? '' : item.id}"
                 data-locked="${item.locked || false}"
-                class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all duration-300 group
-                ${currentRoute === item.id ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5"}
-                ${item.locked ? "opacity-30" : ""}"
+                class="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[9px] sm:text-[10px] font-black tracking-[0.15em] uppercase transition-all duration-300 relative group
+                ${currentRoute === item.id ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)] border-white/10" : "text-white/30 hover:text-white hover:bg-white/[0.04] border-transparent"}
+                ${item.locked ? "opacity-30 cursor-not-allowed grayscale" : ""} border"
               >
-                <i data-lucide="${item.icon}" class="w-4 h-4 ${currentRoute === item.id ? "text-black" : "text-neon-purple"} transition-all"></i>
-                <span class="font-orbitron">${item.label}</span>
-                ${item.locked ? '<i data-lucide="lock" class="w-3.5 h-3.5 ml-auto text-neon-pink"></i>' : ''}
+                <div class="w-7 h-7 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${currentRoute === item.id ? (item.id === 'admin' ? 'text-neon-pink' : 'text-neon-purple') : 'text-white/20'}"></i>
+                </div>
+                <span class="font-orbitron italic">${item.label}</span>
+                ${item.locked ? '<i data-lucide="lock" class="w-3 h-3 ml-auto text-white/20"></i>' : ""}
               </button>
             `).join("")}
           </nav>
         </div>
       </div>
 
-      <div class="p-6 relative z-10 border-t border-white/20 bg-black/80">
-        <div class="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 lighting-border">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center font-black text-white shadow-[0_0_15px_rgba(191,0,255,0.4)] shrink-0">
-            ${adminName.charAt(0)}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-black uppercase tracking-widest text-white truncate font-orbitron">${adminName}</p>
-            <p class="text-[8px] font-black text-white/30 truncate">${user?.email || ''}</p>
-            <p class="text-[7px] font-black text-neon-cyan animate-pulse uppercase mt-1 tracking-[0.2em] italic">ACTIVE LINK</p>
-          </div>
-          <button id="logout-btn" class="p-2 text-white hover:text-neon-red transition-all">
-            <i data-lucide="log-out" class="w-5 h-5 glow-icon"></i>
-          </button>
+      <div class="p-6 mt-auto border-t border-white/5 relative z-10">
+        <div class="p-4 rounded-[1.5rem] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.05] space-y-4">
+           <div class="flex items-center gap-3">
+             <div class="w-9 h-9 rounded-xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center font-black text-neon-cyan shadow-inner">
+               ${adminName.charAt(0)}
+             </div>
+             <div class="flex-1 min-w-0">
+               <p class="text-[9px] font-black uppercase text-white tracking-widest truncate font-orbitron italic">${adminName}</p>
+               <p class="text-[7px] font-bold text-white/20 truncate font-mono">${user?.email || ""}</p>
+             </div>
+           </div>
+           
+           <button id="logout-btn" class="w-full py-3 rounded-xl bg-white/[0.02] hover:bg-neon-pink hover:text-white border border-white/5 hover:border-neon-pink transition-all flex items-center justify-center gap-2 group shadow-inner">
+             <i data-lucide="log-out" class="w-3.5 h-3.5 text-white/20 group-hover:text-white"></i>
+             <span class="text-[8px] font-black uppercase tracking-[0.2em] font-orbitron italic">Sign Out</span>
+           </button>
         </div>
       </div>
     </aside>
@@ -784,7 +800,7 @@ function renderLogin() {
               SUPPORT LINK<br/>
               <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">BOX</span>
            </h1>
-           <p class="text-[9px] font-black uppercase tracking-[0.8em] text-white/20 font-orbitron mt-6">Wave Protocol // Neural Link</p>
+           <p class="text-[9px] font-black uppercase tracking-[0.8em] text-white/20 font-orbitron mt-6">Secure Sync // Admin Link</p>
         </div>
 
         <div id="login-container" class="max-w-xs mx-auto space-y-6">
@@ -812,7 +828,7 @@ function renderLogin() {
 
         <div class="mt-20 flex flex-col items-center gap-4">
            <div class="w-px h-12 bg-gradient-to-b from-white/20 to-transparent"></div>
-           <p class="text-[7px] font-black uppercase tracking-[0.4em] text-white/10">Build Index v1.5.0 // Matrix.Encrypted</p>
+           <p class="text-[7px] font-black uppercase tracking-[0.4em] text-white/10">Build Version 1.5.0 // Secure Admin</p>
         </div>
       </div>
 
@@ -862,69 +878,67 @@ function renderContent() {
 
 function renderDashboard() {
   const tools = [
-    { id: 'members', label: 'Members', icon: 'users', desc: 'Personnel Registry', color: 'text-neon-cyan', borderColor: 'border-neon-cyan/50 shadow-[0_0_25px_rgba(0,245,255,0.2)]' },
-    { id: 'activity', label: 'Activity', icon: 'plus-circle', desc: 'Active Logging', color: 'text-neon-purple', borderColor: 'border-neon-purple/50 shadow-[0_0_25px_rgba(191,0,255,0.2)]' },
-    { id: 'leaderboard', label: 'Leaderboard', icon: 'trophy', desc: 'Ranking Matrix', color: 'text-neon-pink', borderColor: 'border-neon-pink/50 shadow-[0_0_25px_rgba(255,0,128,0.2)]' },
-    { id: 'gapchecker', label: 'Gap Checker', icon: 'scan-search', desc: 'Matrix Logic', color: 'text-neon-green', borderColor: 'border-neon-green/50 shadow-[0_0_25px_rgba(0,255,136,0.2)]' },
+    { id: 'members', label: 'Members', icon: 'users', desc: 'Member Directory', color: 'text-neon-cyan', activeColor: 'bg-neon-cyan/20' },
+    { id: 'activity', label: 'Activity', icon: 'plus-circle', desc: 'Post Activity', color: 'text-neon-purple', activeColor: 'bg-neon-purple/20' },
+    { id: 'leaderboard', label: 'Leaderboard', icon: 'trophy', desc: 'Member Rankings', color: 'text-neon-pink', activeColor: 'bg-neon-pink/20' },
+    { id: 'gapchecker', label: 'Gap Checker', icon: 'search', desc: 'Inactivity Check', color: 'text-neon-green', activeColor: 'bg-neon-green/20' },
   ];
 
   const secondaryTools = [
-    { id: 'admin', label: 'Notice Box', icon: 'shield-check', desc: 'Core Systems', color: 'border-white/20' },
-    { id: 'listgenerator', label: 'List Generator', icon: 'file-text', desc: 'Data Export', color: 'border-white/20' },
-    { id: 'memberMission', label: 'Missions', icon: 'rocket', desc: 'Active Ops', color: 'border-white/20', locked: true },
-    { id: 'shortener', label: 'Shortener', icon: 'link', desc: 'Flux Paths', color: 'border-white/20' },
-    { id: 'topperformer', label: 'Top Performer', icon: 'bar-chart', desc: 'Metric Flow', color: 'border-white/20' },
+    { id: 'admin', label: 'Notice Box', icon: 'shield-check', desc: 'Admin' },
+    { id: 'listgenerator', label: 'List Gen', icon: 'file-text', desc: 'Tools' },
+    { id: 'memberMission', label: 'Missions', icon: 'rocket', desc: 'Tasks', locked: true },
+    { id: 'shortener', label: 'Shortener', icon: 'link', desc: 'Utility' },
+    { id: 'topperformer', label: 'Top Members', icon: 'bar-chart', desc: 'Stats' },
   ];
 
-  const statusIndicators = [
-    { label: 'Total Members', status: 'Optimal', id: 'stat-total-members', value: '...' },
-    { label: 'System', status: 'Secured', id: 'stat-system-load', value: 'OPTIMAL' },
-    { label: 'Database', status: 'Syncing', id: 'stat-wave-cycle', value: 'ACTIVE' }
+  const stats = [
+    { id: 'stat-total-members', label: 'Total Members', value: '...', icon: 'users', color: 'text-neon-cyan' },
+    { id: 'stat-active-today', label: 'Active Today', value: '...', icon: 'activity', color: 'text-neon-purple' },
+    { id: 'stat-sync-time', label: 'Last Sync', value: 'Just Now', icon: 'clock', color: 'text-neon-green' }
   ];
 
   return `
-    <div class="space-y-12 animate-in fade-in duration-1000 pb-20">
-      <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 bg-gradient-to-br from-white/[0.05] via-transparent to-neon-cyan/10 p-10 rounded-[3rem] border border-white/10 lighting-border relative overflow-hidden group shadow-[0_0_50px_rgba(0,245,255,0.1)]">
-        <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan/20 via-neon-purple/10 to-transparent pointer-events-none opacity-40 group-hover:opacity-60 transition-opacity duration-1000"></div>
-        <div class="absolute -top-32 -right-32 w-64 h-64 bg-neon-cyan/30 blur-[100px] rounded-full animate-pulse"></div>
+    <div class="space-y-12 animate-in fade-in duration-1000">
+      <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 glass-card-neon p-10 rounded-[3rem] border border-white/5 relative overflow-hidden group shadow-2xl bg-black/40">
+        <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan/5 via-transparent to-neon-purple/5 opacity-50"></div>
         
-        <div class="relative z-10 space-y-4">
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-neon-cyan via-neon-purple to-neon-pink p-[2px] animate-spin-slow">
-              <div class="w-full h-full rounded-[14px] bg-black flex items-center justify-center">
-                <i data-lucide="waves" class="w-7 h-7 text-white animate-pulse"></i>
-              </div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-6 mb-2">
+            <div class="w-16 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform">
+               <i data-lucide="waves" class="w-9 h-9 text-neon-cyan animate-pulse"></i>
             </div>
             <div>
-              <div class="flex items-center gap-3 mb-1">
-                <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
-                <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.6em] font-orbitron italic">System Online</p>
+              <div class="flex items-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF] animate-pulse"></div>
+                <p class="premium-label !text-neon-cyan/60">System Online</p>
               </div>
-              <h1 class="text-2xl md:text-3xl font-black italic tracking-tighter uppercase font-cinzel text-white leading-none">
-                SUPPORT LINK <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent underline decoration-white/10 decoration-4 underline-offset-4">BOX</span>
+              <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter uppercase font-cinzel text-white leading-none">
+                SUPPORT LINK <span class="bg-gradient-to-r from-white via-neon-cyan to-white bg-clip-text text-transparent underline decoration-neon-cyan/20 decoration-4 underline-offset-8">BOX</span>
               </h1>
             </div>
           </div>
         </div>
-        
-        <div class="flex flex-wrap items-center gap-8 lg:border-l border-white/10 lg:pl-10 relative z-10 w-full lg:w-auto">
-          <div class="grid grid-cols-3 gap-6">
-            ${statusIndicators.map(s => `
-              <div>
-                <p class="text-[9px] font-black uppercase text-white/30 tracking-widest mb-1 italic font-orbitron">${s.label}</p>
-                <h3 id="${s.id}" class="text-sm sm:text-base font-black italic text-neon-cyan uppercase tracking-wider">${s.value}</h3>
-              </div>
-            `).join('')}
+
+        <div class="flex flex-wrap items-center gap-8 lg:border-l border-white/10 lg:pl-10 relative z-10">
+          <div class="grid grid-cols-3 gap-8">
+             ${stats.map(s => `
+               <div>
+                 <p class="text-[8px] font-black uppercase text-white/20 tracking-[0.4em] mb-1 italic font-orbitron">${s.label}</p>
+                 <div class="flex items-center gap-2">
+                   <h3 id="${s.id}" class="text-xl font-black italic text-white tracking-widest">${s.value}</h3>
+                 </div>
+               </div>
+             `).join('')}
           </div>
-          <div class="flex items-center gap-4 ml-auto">
+          <div class="h-12 w-px bg-white/5 mx-4 hidden lg:block"></div>
+          <div class="flex items-center gap-4">
             <div class="text-right">
-              <p class="text-[7px] font-black uppercase text-white/20 tracking-widest mb-0.5">Operator ID</p>
-              <h3 class="text-[12px] font-black italic text-white uppercase font-cinzel tracking-widest">${getAdminName(user?.email)}</h3>
+              <p class="text-[7px] font-black uppercase text-white/20 tracking-[0.5em] mb-1">Operator</p>
+              <h3 class="text-xs font-black italic text-neon-cyan uppercase font-orbitron tracking-widest">${getAdminName(user?.email)}</h3>
             </div>
-            <div class="w-14 h-14 rounded-[1.2rem] bg-gradient-to-br from-neon-cyan via-neon-purple to-neon-pink p-[1px] shadow-[0_0_20px_rgba(191,0,255,0.3)]">
-              <div class="w-full h-full rounded-[1.15rem] bg-black flex items-center justify-center">
-                <i data-lucide="shield-check" class="w-7 h-7 text-neon-cyan animate-pulse"></i>
-              </div>
+            <div class="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
+               <i data-lucide="shield-check" class="w-6 h-6 text-white/40"></i>
             </div>
           </div>
         </div>
@@ -932,83 +946,60 @@ function renderDashboard() {
 
       <section class="grid grid-cols-2 md:grid-cols-4 gap-8">
         ${tools.map(tool => `
-          <button onclick="navigateTo('${tool.id}')" class="group relative aspect-square transition-all duration-700 hover:scale-[1.05]">
-            <div class="absolute -inset-2 bg-gradient-to-br from-neon-cyan via-neon-purple to-neon-pink rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-1000"></div>
-            <div class="glass-card-neon lighting-border p-10 h-full flex flex-col justify-between border-white/20 hover:border-white/40 transition-all duration-700 bg-black/80 shadow-2xl !rounded-[3rem] overflow-hidden relative ${tool.borderColor || ''}">
-               <div class="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-white/10 to-transparent -mr-24 -mt-24 rounded-full group-hover:scale-150 transition-transform duration-1000 opacity-10"></div>
-              
-              <div class="flex justify-between items-start relative z-10">
-                <div class="w-16 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700 shadow-xl">
-                  <i data-lucide="${tool.icon}" class="w-8 h-8 glow-icon"></i>
+          <button onclick="navigateTo('${tool.id}')" class="group relative aspect-square">
+            <div class="absolute -inset-1 bg-gradient-to-r from-transparent via-white/5 to-transparent blur opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+            <div class="glass-card-neon lighting-border p-10 h-full flex flex-col justify-between border-white/5 hover:border-white/10 transition-all duration-700 bg-black/40 hover:bg-black/60 relative z-10 rounded-[3.5rem] overflow-hidden group/card shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+              <div class="flex justify-between items-start">
+                <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-700 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+                  <i data-lucide="${tool.icon}" class="w-8 h-8 text-white/40 group-hover:text-black transition-all"></i>
                 </div>
-                <div class="w-2 h-2 rounded-full bg-white/20 group-hover:bg-neon-cyan transition-all shadow-[0_0_15px_#00F5FF]"></div>
+                <div class="w-2.5 h-2.5 rounded-full ${tool.color.replace('text-', 'bg-')} shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-all animate-pulse"></div>
               </div>
 
-              <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                  <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] italic font-orbitron">${tool.desc}</p>
-                </div>
-                <h3 class="text-base sm:text-lg font-black italic uppercase tracking-widest leading-none transition-all duration-700 ${tool.color}">${tool.label}</h3>
+              <div class="space-y-2">
+                <p class="text-[9px] font-black uppercase text-white/10 tracking-[0.4em] font-orbitron italic group-hover:text-white/60 transition-colors">${tool.desc}</p>
+                <h3 class="text-2xl font-black uppercase text-white font-cinzel tracking-tight group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/20 decoration-2 underline-offset-4">${tool.label}</h3>
               </div>
+              
+              <div class="absolute -bottom-8 -right-8 w-24 h-24 bg-white/5 rounded-full blur-3xl group-hover:bg-neon-cyan/20 transition-all duration-700"></div>
             </div>
           </button>
         `).join('')}
       </section>
 
-      <section class="space-y-8">
-        <div class="flex items-center gap-6">
-          <div class="w-2.5 h-2.5 rounded-full bg-neon-purple shadow-[0_0_10px_#BF00FF] animate-pulse"></div>
-          <p class="text-[11px] font-black uppercase text-white/30 tracking-[0.8em] italic font-orbitron">WAVE EXPANSION INFRASTRUCTURE</p>
-          <div class="h-px flex-1 bg-gradient-to-r from-white/10 via-white/5 to-transparent"></div>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          ${secondaryTools.map((tool) => `
-            <button 
-              onclick="${tool.locked ? "showNotice('Protocol Lock', 'Access Denied')" : `navigateTo('${tool.id}')`}" 
-              class="glass-card-neon lighting-border p-8 flex flex-col justify-between group text-left border-white/10 relative transition-all rounded-[2.5rem] h-72 bg-black/60 hover:bg-black/80 hover:-translate-y-4 duration-700 shadow-xl ${tool.locked ? 'opacity-40' : ''}"
-            >
-              <div class="flex justify-between items-start">
-                <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-700 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
-                  <i data-lucide="${tool.icon}" class="w-7 h-7 text-white/40 group-hover:text-black transition-all"></i>
-                </div>
-                <div class="w-2.5 h-2.5 rounded-full ${tool.locked ? 'bg-neon-pink shadow-[0_0_15px_#FF0080]' : 'bg-neon-cyan/20 group-hover:bg-neon-cyan shadow-[0_0_15px_#00F5FF]'} transition-all animate-pulse"></div>
-              </div>
-              <div class="space-y-3">
-                <div class="flex items-center gap-2">
-                  <h4 class="text-xs sm:text-sm font-black uppercase text-white tracking-tighter italic group-hover:text-neon-cyan transition-colors underline decoration-transparent group-hover:decoration-neon-cyan/30 decoration-2 underline-offset-4">${tool.label}</h4>
-                  ${tool.locked ? '<i data-lucide="lock" class="w-3 h-3 text-neon-pink"></i>' : ''}
-                </div>
-                <p class="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic font-orbitron group-hover:text-white/60 transition-colors">${tool.desc}</p>
-              </div>
-            </button>
-          `).join('')}
-        </div>
-      </section>
-
-      <div class="relative pt-12">
-        <div class="glass-card-neon lighting-border bg-black/40 p-8 rounded-[2.5rem] border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-8 group overflow-hidden shadow-2xl relative">
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full duration-[3000ms] transition-transform"></div>
-          
-          <div class="flex items-center gap-4 shrink-0 relative z-10">
-            <div class="w-16 h-16 rounded-[1.2rem] bg-white/5 border-white/10 flex items-center justify-center transition-all duration-700 shadow-xl relative overflow-hidden">
-              <i data-lucide="bell-ring" class="w-8 h-8 text-white animate-bounce relative z-10 glow-icon"></i>
-            </div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-white text-2xl font-black uppercase tracking-[0.2em] italic font-orbitron">NOTICE BOX</span>
-              </div>
-            </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="space-y-6">
+          <div class="flex items-center gap-4 px-4">
+            <div class="w-2 h-2 rounded-full bg-neon-purple shadow-[0_0_10px_#BF00FF]"></div>
+            <p class="text-[10px] font-black uppercase tracking-[0.8em] text-white/20 font-orbitron">Expansion Modules</p>
           </div>
-
-          <div id="notice-box-display" onclick="navigateTo('admin')" class="flex-1 w-full bg-black/60 border border-white/5 p-6 rounded-[1.5rem] shadow-inner min-h-[100px] flex items-center justify-center relative z-10 cursor-pointer hover:bg-black/80 transition-all">
-            <p class="text-lg text-white font-black italic animate-pulse font-orbitron tracking-[0.2em] uppercase">Checking System Status...</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+            ${secondaryTools.map(tool => `
+              <button onclick="${tool.locked ? '' : `navigateTo('${tool.id}')`}" class="glass-card-neon p-6 rounded-[2.5rem] border-white/5 flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-all duration-500 shadow-xl relative overflow-hidden ${tool.locked ? 'opacity-30' : ''}">
+                <div class="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:rotate-12">
+                   <i data-lucide="${tool.icon}" class="w-6 h-6 text-white/20 group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="text-center">
+                   <h4 class="text-[10px] font-black uppercase text-white tracking-[0.2em] group-hover:text-neon-cyan transition-colors">${tool.label}</h4>
+                </div>
+                ${tool.locked ? '<i data-lucide="lock" class="absolute top-4 right-4 w-3.5 h-3.5 text-white/10"></i>' : ''}
+              </button>
+            `).join('')}
           </div>
+        </div>
 
-          <div class="flex items-center gap-4 grow-0 shrink-0 relative z-10 w-full lg:w-auto justify-center">
-             <button onclick="renderDashboard()" class="w-16 h-16 rounded-[1.2rem] bg-white/10 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all duration-700 text-white group/btn shadow-2xl">
-               <i data-lucide="refresh-cw" class="w-6 h-6 group-hover/btn:rotate-180 transition-transform duration-1000"></i>
-             </button>
+        <div class="space-y-6">
+           <div class="flex items-center gap-4 px-4">
+            <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF]"></div>
+            <p class="text-[10px] font-black uppercase tracking-[0.8em] text-white/20 font-orbitron">System Terminal</p>
+          </div>
+          <div class="glass-card-neon bg-black/40 p-10 rounded-[3rem] border border-white/10 flex flex-col items-center justify-center gap-8 group overflow-hidden shadow-2xl h-[300px] relative">
+             <div class="absolute inset-0 bg-gradient-to-br from-transparent via-white/[0.02] to-transparent pointer-events-none"></div>
+             <div id="notice-box-display" class="relative z-10 w-full">
+               <div class="flex justify-center">
+                 <div class="w-8 h-8 border-2 border-white/10 border-t-neon-cyan rounded-full animate-spin"></div>
+               </div>
+             </div>
           </div>
         </div>
       </div>
@@ -1030,7 +1021,7 @@ function renderMembers() {
         <div>
           <div class="flex items-center gap-3 mb-2">
             <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
-            <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Wave Registry Protocol</p>
+            <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Member Register Protocol</p>
           </div>
           <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter uppercase whitespace-nowrap">
             MEMBERS <span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent underline decoration-neon-cyan/30 decoration-4 underline-offset-8">DATABASE</span>
@@ -1118,42 +1109,37 @@ function renderActivity() {
 
   return `
     <header class="mb-10 animate-in fade-in slide-in-from-top-2">
-      <div class="flex items-center gap-3 mb-6">
-        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
-          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
-          Back
-        </button>
-      </div>
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-2.5 h-2.5 rounded-full bg-neon-purple shadow-[0_0_15px_#BF00FF] animate-pulse"></div>
-        <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Temporal Sync Link</p>
+        <div class="w-2.5 h-2.5 rounded-full bg-neon-cyan shadow-[0_0_15px_#00F5FF] animate-pulse"></div>
+        <p class="text-neon-cyan text-[11px] font-black uppercase tracking-[0.5em] italic font-orbitron">Activity Sync Protocol</p>
       </div>
       <h1 class="text-5xl font-black italic tracking-tighter uppercase origin-left">
-        ACTIVITY <span class="bg-gradient-to-r from-neon-purple via-neon-pink to-neon-amber bg-clip-text text-transparent underline decoration-neon-purple/20 decoration-4 underline-offset-8">FEED</span>
+        ACTIVITY <span class="bg-gradient-to-r from-neon-cyan via-white to-neon-purple bg-clip-text text-transparent">FEED</span>
       </h1>
     </header>
 
     <div class="max-w-6xl mx-auto px-4 md:px-0 pb-32">
-      <div class="glass-card-neon lighting-border p-12 md:p-20 rounded-[4rem] border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent shadow-[0_0_50px_rgba(191,0,255,0.05)]">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-20">
+      <div class="glass-card-neon p-12 md:p-20 rounded-[4rem] border-white/5 shadow-2xl bg-black/40 relative">
+        <div class="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 via-transparent to-neon-purple/5 opacity-30 pointer-events-none"></div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-20 relative z-10">
           <div class="lg:col-span-2 space-y-10">
             <div class="flex items-center justify-between px-4">
               <div class="flex items-center gap-3">
-                 <div class="w-1.5 h-6 bg-neon-purple rounded-full"></div>
-                 <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-orbitron italic">Submission Parameters</p>
+                 <div class="w-1.5 h-6 bg-neon-cyan rounded-full"></div>
+                 <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-orbitron italic">Stream Ingestion</p>
               </div>
-              <p class="text-[9px] font-black uppercase text-neon-cyan/40 italic font-rajdhani">Auto-Mapping Protocol Active</p>
             </div>
             <textarea 
               id="activity-data" 
-              class="w-full h-96 bg-black/40 border border-white/10 rounded-[2.5rem] p-10 text-lg font-bold text-white focus:outline-none focus:border-neon-purple/50 focus:shadow-[0_0_30px_rgba(191,0,255,0.1)] transition-all placeholder:text-white/5 resize-none font-rajdhani leading-relaxed" 
-              placeholder="@Operator Input Sequence..."
+              class="w-full h-96 bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-10 text-lg font-bold text-white focus:outline-none focus:border-neon-cyan/40 transition-all placeholder:text-white/5 resize-none font-rajdhani leading-relaxed shadow-inner" 
+              placeholder="@Identity - Action Performed..."
             >${savedData}</textarea>
           </div>
 
           <div class="space-y-16 py-4">
             <div>
-              <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-orbitron italic mb-8 px-2">Temporal Control</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 font-orbitron italic mb-8 px-2">Cycle Date</p>
               <div class="relative group">
                 <input 
                   id="activity-date" 
@@ -1161,22 +1147,16 @@ function renderActivity() {
                   value="${savedDate}" 
                   class="w-full bg-white/[0.04] border border-white/10 rounded-[1.5rem] p-6 pl-16 text-sm font-black text-white focus:outline-none focus:border-neon-cyan/40 transition-all font-rajdhani uppercase"
                 >
-                <i data-lucide="calendar" class="absolute left-7 top-1/2 -translate-y-1/2 w-5 h-5 text-neon-cyan/40 group-focus-within:text-neon-cyan transition-colors"></i>
+                <i data-lucide="calendar" class="absolute left-7 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-neon-cyan transition-colors"></i>
               </div>
-              <div class="mt-8 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-                 <p class="text-[10px] font-black uppercase tracking-widest text-white/20 leading-relaxed italic">
-                   New entities detected in the sequence will be automatically enrolled into the Wave Database before synchronization.
-                 </p>
-              </div>
-            </div>
-            
-            <div class="p-8 bg-gradient-to-br from-neon-purple/10 to-transparent rounded-3xl border border-white/5">
-               <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-neon-purple mb-4 font-orbitron">Sequence Buffer</h4>
-               <p class="text-[9px] font-black text-white/30 uppercase leading-relaxed italic">Full relational integrity check will be performed on all document pointers.</p>
             </div>
 
-            <button id="submit-activity" class="w-full py-10 bg-gradient-to-r from-neon-purple via-neon-pink to-neon-amber text-black font-black uppercase tracking-[0.4em] text-[12px] rounded-[2rem] transition-all duration-700 hover:scale-[1.05] active:scale-[0.98] shadow-[0_30px_80px_-15px_rgba(191,0,255,0.4)] hover:shadow-[0_40px_100px_-20px_rgba(191,0,255,0.6)]">
-              Establish Sync Link
+            <button id="submit-activity" class="w-full relative group py-10 transition-transform active:scale-95">
+               <div class="absolute -inset-1 bg-gradient-to-r from-neon-cyan via-white to-neon-purple rounded-[2.5rem] blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+               <div class="relative w-full h-full bg-white text-black font-black uppercase tracking-[0.4em] text-[12px] rounded-[2rem] flex items-center justify-center font-orbitron group-hover:bg-transparent group-hover:text-white transition-all duration-700">
+                  <span class="relative z-10">Authorize Sync</span>
+                  <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan via-white to-neon-purple opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+               </div>
             </button>
           </div>
         </div>
@@ -1185,11 +1165,11 @@ function renderActivity() {
 
     <!-- Discovery Modal -->
     <div id="discovery-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/98 backdrop-blur-3xl hidden">
-      <div class="w-full max-w-xl glass-card p-12 md:p-16 rounded-[3rem] border-white/10 animate-in zoom-in duration-700 relative overflow-hidden">
+      <div class="w-full max-w-xl glass-card p-12 md:p-16 rounded-[3rem] border-white/10 animate-in zoom-in duration-700 relative overflow-hidden shadow-2xl">
         <div class="mb-12">
-          <p class="premium-label mb-6">Detection Alert</p>
-          <h2 class="text-4xl font-black italic uppercase font-cinzel tracking-tighter">Unknown Entities</h2>
-          <p class="text-[9px] text-white/20 font-black uppercase mt-4 tracking-widest italic">The following identities were not found in the grid:</p>
+          <div class="w-1.5 h-12 bg-neon-cyan rounded-full mb-8"></div>
+          <h2 class="text-4xl font-black italic uppercase font-cinzel tracking-tighter text-white">ID Discovery</h2>
+          <p class="text-[9px] text-white/20 font-black uppercase mt-4 tracking-widest italic">The following identities were not found in current registry:</p>
         </div>
         
         <div id="discovery-list" class="max-h-80 overflow-y-auto space-y-3 mb-12 pr-4 custom-scrollbar">
@@ -1197,8 +1177,8 @@ function renderActivity() {
         </div>
 
         <div class="grid grid-cols-2 gap-6">
-          <button id="cancel-discovery" class="py-6 bg-white/[0.03] border border-white/5 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-white/10 transition-all">Abort</button>
-          <button id="confirm-discovery" class="py-6 bg-white text-black rounded-2xl font-black uppercase text-[9px] tracking-widest shadow-2xl hover:scale-105 transition-all">Enroll & Sync</button>
+          <button id="cancel-discovery" class="py-6 bg-white/[0.03] border border-white/5 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-white/10 transition-all text-white/40">Abort</button>
+          <button id="confirm-discovery" class="py-6 bg-white text-black rounded-2xl font-black uppercase text-[9px] tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-all">Enroll & Sync</button>
         </div>
       </div>
     </div>
@@ -1341,41 +1321,44 @@ ${list || "কোনো ইনেক্টিভ মেম্বার পাও
 
 function renderLeaderboard() {
   return `
-    <header class="mb-16 px-4 md:px-0">
-      <div class="flex items-center gap-3 mb-8">
-        <button onclick="navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all group">
-          <i data-lucide="chevron-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
-          Back
-        </button>
-      </div>
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
-        <div class="relative">
-          <div class="flex items-center gap-6 mb-8">
-            <span class="w-12 h-px bg-neon-pink/40"></span>
-            <p class="text-neon-pink text-[10px] font-black uppercase tracking-[0.4em] italic font-orbitron">Performance Pulse</p>
-          </div>
-          <h1 class="text-4xl md:text-5xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white whitespace-nowrap">
-            GLOBAL<br/><span class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">LEADERBOARD</span>
-          </h1>
+    <div class="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header class="mb-12 px-6">
+        <div class="flex items-center gap-4 mb-10">
+          <button onclick="navigateTo('dashboard')" class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-white group-hover:-translate-x-1 transition-transform"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest text-white/40">Back</span>
+          </button>
         </div>
         
-        <div class="flex bg-white/[0.02] p-2 rounded-3xl border border-white/5 self-start">
-          <button 
-            data-tab="rankings"
-            class="px-8 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-700 ${leaderboardTab === "rankings" ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "text-white/20 hover:text-white/60"}"
-          >Active Rankings</button>
-          <button 
-            data-tab="inactivity"
-            class="px-8 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-700 ${leaderboardTab === "inactivity" ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "text-white/20 hover:text-white/60"}"
-          >Inactivity Check</button>
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+          <div>
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-10 h-px bg-neon-cyan/40"></div>
+              <p class="text-neon-cyan text-[9px] font-black uppercase tracking-[0.4em] font-orbitron italic">Member Rankings</p>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black italic tracking-tighter uppercase font-cinzel leading-none text-white">
+              LEADERBOARD
+            </h1>
+          </div>
+          
+          <div class="flex p-1.5 bg-black/40 rounded-2xl border border-white/10 shadow-inner self-start">
+            <button 
+              data-tab="rankings"
+              class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${leaderboardTab === "rankings" ? "bg-white text-black shadow-lg scale-[1.02]" : "text-white/20 hover:text-white hover:bg-white/5"}"
+            >Rankings</button>
+            <button 
+              data-tab="inactivity"
+              class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${leaderboardTab === "inactivity" ? "bg-white text-black shadow-lg scale-[1.02]" : "text-white/20 hover:text-white hover:bg-white/5"}"
+            >Inactivity</button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <div id="leaderboard-list" class="px-4 md:px-0 pb-32">
-      <div class="p-40 text-center">
-         <div class="w-12 h-12 border-4 border-white/5 border-t-white rounded-full animate-spin mx-auto mb-6"></div>
-         <p class="premium-label opacity-40">Synchronizing records...</p>
+      <div id="leaderboard-list" class="min-h-[400px] px-6 py-12">
+        <div class="flex flex-col items-center justify-center py-40">
+           <div class="w-16 h-16 border-4 border-white/10 border-t-neon-cyan rounded-full animate-spin mb-8 shadow-xl"></div>
+           <p class="text-neon-cyan/40 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Syncing Data...</p>
+        </div>
       </div>
     </div>
   `;
@@ -1439,7 +1422,7 @@ function attachContentEvents() {
         "Security Sweep Complete. No issues found.",
         "Database Link is stable and secured.",
         "Notice: Member registry updated successfully.",
-        "Matrix Scan: Everything at optimal levels.",
+        "Update Check: Everything is working correctly.",
         "Support Link Box: Ready for operation."
       ];
       
@@ -1547,7 +1530,7 @@ function attachContentEvents() {
         }
 
         if (namesList.length === 0) {
-          alert("Matrix Error: No valid identifications found in current stream. Please ensure names follow the enrollment format.");
+          alert("System Error: No valid names found in text. Please check format.");
           return;
         }
 
@@ -1895,6 +1878,9 @@ function attachContentEvents() {
           }
         } catch (err) {
           alert("Discovery Protocol Failure.");
+        } finally {
+          syncBtn.innerHTML = originalBtnText;
+          syncBtn.disabled = false;
         }
       });
   } else if (currentRoute === "leaderboard") {
@@ -1923,7 +1909,7 @@ async function fetchLeaderboard() {
   const container = document.getElementById("leaderboard-list");
   if (!container) return;
 
-  // Re-attach tab events immediately
+  // Tab switching logic
   document.querySelectorAll("[data-tab]").forEach((btn) => {
     (btn as HTMLButtonElement).onclick = (e) => {
       const tab = (e.currentTarget as HTMLButtonElement).dataset.tab as any;
@@ -1943,45 +1929,87 @@ async function fetchLeaderboard() {
         .limit(100);
 
       if (error) throw error;
-      
+      if (!data) throw new Error("Null payload from matrix.");
+
+      const top3 = data.slice(0, 3);
+      const rest = data.slice(3);
+
+      const renderPodiumMember = (m: Member, rank: number) => {
+        const theme = rank === 1 ? 'neon-cyan' : rank === 2 ? 'neon-purple' : 'neon-pink';
+        const size = rank === 1 ? 'w-32 h-32' : 'w-24 h-24';
+        const rankLabel = rank === 1 ? 'Champion' : rank === 2 ? 'Elite' : 'Alpha';
+        
+        return `
+          <div class="flex flex-col items-center gap-6 group relative ${rank === 1 ? '-translate-y-12' : ''}">
+            <div class="relative">
+              <div class="absolute -inset-8 bg-${theme}/20 blur-[60px] rounded-full opacity-40 group-hover:opacity-100 transition-opacity"></div>
+              <div class="relative ${size} rounded-full p-1 bg-black border-2 border-${theme} shadow-2xl overflow-hidden">
+                <img src="${getAvatarUrl(m.name)}" 
+                     class="w-full h-full rounded-full bg-white/5 object-cover" />
+                <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-black border border-${theme} flex items-center justify-center shadow-lg">
+                   <span class="text-sm font-black italic text-white">${rank}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-center">
+              <p class="text-[10px] font-black uppercase tracking-[0.3em] text-${theme} mb-1">${rankLabel}</p>
+              <p class="text-[14px] sm:text-[18px] font-black uppercase text-white font-cinzel tracking-wider line-clamp-1">${m.name}</p>
+              <div class="flex items-center justify-center gap-2 mt-2">
+                <div class="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                  <span class="text-[12px] font-black text-white italic"><b>${m.total_points}</b> <span class="text-[8px] uppercase not-italic opacity-40 ml-1">Points</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
       container.innerHTML = `
-        <div class="glass-card rounded-[1.5rem] border-white/5 overflow-hidden animate-in fade-in duration-700">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="bg-white/[0.02] border-b border-white/5">
-                <th class="p-3 premium-label !text-white/20">Pos</th>
-                <th class="p-3 premium-label !text-white/20">Identity</th>
-                <th class="p-3 premium-label !text-white/20">Points</th>
-                <th class="p-3 premium-label !text-white/20 text-right">Badge</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/[0.01]">
-              ${data?.map((m, i) => `
-                <tr class="hover:bg-white/[0.01] transition-colors group">
-                  <td class="p-3">
-                    <span class="text-[11px] font-black italic text-white/20 group-hover:text-white transition-colors">
-                      ${(i + 1).toString().padStart(2, "0")}
-                    </span>
-                  </td>
-                  <td class="p-3">
-                    <span class="text-[10px] font-bold uppercase tracking-tight text-white/60 group-hover:text-white transition-colors font-rajdhani">
-                      ${m.name}
-                    </span>
-                  </td>
-                  <td class="p-3">
-                    <span class="text-[11px] font-black italic text-neon-cyan/60 group-hover:text-neon-cyan transition-colors">
-                      ${m.total_points}
-                    </span>
-                  </td>
-                  <td class="p-3 text-right">
-                    <span class="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[7px] font-black uppercase tracking-widest text-white/10 uppercase italic">
-                      ${calculateLevel(m.total_points)}
-                    </span>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div class="space-y-20 animate-in fade-in zoom-in-95 duration-1000 pb-20">
+          <div class="grid grid-cols-3 items-end gap-2 sm:gap-12 pt-20 max-w-4xl mx-auto px-4 text-center">
+            <div class="order-2 sm:order-1">${top3[1] ? renderPodiumMember(top3[1], 2) : ''}</div>
+            <div class="order-1 sm:order-2">${top3[0] ? renderPodiumMember(top3[0], 1) : ''}</div>
+            <div class="order-3 sm:order-3">${top3[2] ? renderPodiumMember(top3[2], 3) : ''}</div>
+          </div>
+
+          <div class="max-w-4xl mx-auto px-4">
+            <div class="glass-card-neon bg-black/40 border border-white/5 rounded-3xl overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-white/10 bg-white/5">
+                    <th class="px-4 pr-0 py-4 text-[10px] font-black uppercase tracking-widest text-white/40">Rank</th>
+                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white/40">Member Name</th>
+                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white/40 text-center">Level</th>
+                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white/40 text-right">Total Points</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                   ${data.map((m, i) => {
+                     const rank = i + 1;
+                     return `
+                       <tr class="group hover:bg-white/5 transition-all">
+                         <td class="px-4 pr-0 py-5">
+                            <span class="text-xs font-black italic ${rank <= 3 ? (rank === 1 ? 'text-neon-cyan' : rank === 2 ? 'text-neon-purple' : 'text-neon-pink') : 'text-white/20'} group-hover:scale-110 transition-transform inline-block">#${rank}</span>
+                         </td>
+                         <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                               <img src="${getAvatarUrl(m.name)}" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10" />
+                               <span class="text-[13px] font-bold uppercase tracking-tight text-white/90 group-hover:text-white transition-colors font-cinzel line-clamp-1">${m.name}</span>
+                            </div>
+                         </td>
+                         <td class="px-6 py-5 text-center">
+                            <span class="px-3 py-1 rounded bg-white/5 border border-white/10 text-[9px] font-black text-neon-cyan uppercase italic">${calculateLevel(m.total_points)}</span>
+                         </td>
+                         <td class="px-6 py-5 text-right">
+                           <span class="text-[15px] font-black italic text-white group-hover:text-neon-cyan transition-colors">${m.total_points}</span>
+                         </td>
+                       </tr>
+                     `;
+                   }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
     } else {
@@ -1989,15 +2017,19 @@ async function fetchLeaderboard() {
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-      const [{ data: allMembers }, { data: syncLogs }] = await Promise.all([
+      const [membersRes, auditRes] = await Promise.all([
         supabase.from("members").select("*"),
-        supabase.from("audit_trail").select("timestamp").ilike("action", "ACTIVITY_SYNC%").gte("timestamp", sixtyDaysAgo.toISOString())
+        supabase.from("audit_trail")
+          .select("timestamp")
+          .ilike("action", "ACTIVITY_SYNC%")
+          .gte("timestamp", sixtyDaysAgo.toISOString())
       ]);
 
-      if (!allMembers) throw new Error("Personnel records inaccessible");
+      if (membersRes.error) throw membersRes.error;
+      const allMembers = membersRes.data || [];
 
       const activeDates = new Set<string>();
-      syncLogs?.forEach((log) => {
+      auditRes.data?.forEach((log) => {
         activeDates.add(new Date(log.timestamp).toISOString().split("T")[0]);
       });
       const sortedActiveDates = Array.from(activeDates).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
@@ -2011,92 +2043,106 @@ async function fetchLeaderboard() {
         .sort((a, b) => b.missedDays - a.missedDays);
 
       container.innerHTML = `
-        <div class="space-y-6 animate-in fade-in duration-700">
-          <div class="glass-card rounded-[1.5rem] border-white/5 overflow-hidden">
-            <div class="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center gap-6 bg-white/[0.01]">
-              <div>
-                <p class="premium-label !text-[7px] mb-1">Override Protocol</p>
-                <h3 class="text-base font-black italic uppercase font-cinzel leading-none">Matrix Gaps</h3>
-              </div>
-              <button id="show-generator-btn" class="px-6 py-2.5 bg-white text-black rounded-xl font-black uppercase text-[8px] tracking-widest hover:scale-[1.05] transition-all">
-                Notice Tool
-              </button>
-            </div>
-            
-            <div class="overflow-x-auto">
-              <table class="w-full text-left">
-                <thead>
-                  <tr class="bg-white/[0.02] border-b border-white/5">
-                    <th class="p-4 premium-label !text-white/20 text-[7px]">ID</th>
-                    <th class="p-4 premium-label !text-white/20 text-[7px]">Identity</th>
-                    <th class="p-4 premium-label !text-white/20 text-[7px]">Status</th>
-                    <th class="p-4 premium-label !text-white/20 text-right text-[7px]">Gaps</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-white/[0.01]">
-                  ${mappedMembers.map((m) => `
-                    <tr class="hover:bg-white/[0.01] transition-colors">
-                      <td class="p-4 text-[10px] font-black text-white/10 italic">#${m.member_number}</td>
-                      <td class="p-4 text-[10px] font-bold uppercase text-white/60 font-rajdhani">${m.name}</td>
-                      <td class="p-4">
-                        <span class="px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest border border-white/5
-                          ${m.missedDays >= 3 ? "bg-neon-red/10 text-neon-red border-neon-red/20" : m.missedDays > 0 ? "bg-neon-amber/10 text-neon-amber border-neon-amber/20" : "bg-neon-green/10 text-neon-green border-neon-green/20"}"
-                        >
-                          ${m.missedDays >= 3 ? "CRITICAL" : m.missedDays > 0 ? "STREAK RISK" : "SYNCED"}
-                        </span>
-                      </td>
-                      <td class="p-4 text-right text-[10px] font-black italic text-white/20">${m.missedDays} Cycles</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
+        <div class="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 pb-32">
+          <div class="glass-card-neon p-10 rounded-[2.5rem] border-white/10 bg-black/60 text-center">
+            <h3 class="text-2xl font-black italic uppercase text-white font-cinzel mb-4">Inactivity Tracker</h3>
+            <p class="text-white/40 text-[10px] font-black uppercase tracking-widest max-w-md mx-auto mb-8">Identifying members who have missed active group signals.</p>
+            <button id="show-generator-btn" class="px-8 py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-xl">
+              Notice Generator
+            </button>
           </div>
 
-          <div id="notice-generator-section" class="hidden glass-card p-12 md:p-20 rounded-[3rem] border-white/5 animate-in slide-in-from-top-12 duration-700">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-16">
-              <div class="space-y-12">
+          <div class="glass-card-neon bg-black/40 border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white/5 border-b border-white/10">
+                  <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-white/40">Member</th>
+                  <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-white/40 text-center">Status</th>
+                  <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-white/40 text-center">Days Gap</th>
+                  <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-white/40 text-right">Risk Level</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                ${mappedMembers.map((m) => {
+                  const riskColor = m.missedDays >= 5 ? 'text-neon-red' : m.missedDays >= 3 ? 'text-neon-amber' : 'text-neon-green';
+                  const riskLabel = m.missedDays >= 5 ? 'CRITICAL' : m.missedDays >= 3 ? 'WARNING' : 'STABLE';
+                  const glow = m.missedDays >= 5 ? 'shadow-[0_0_15px_#FF3131]' : m.missedDays >= 3 ? 'shadow-[0_0_15px_#FFD700]' : 'shadow-[0_0_15px_#00FF88]';
+                  
+                  return `
+                    <tr class="group hover:bg-white/5 transition-all">
+                      <td class="px-8 py-6">
+                        <div class="flex items-center gap-4">
+                          <div class="w-10 h-10 rounded-xl bg-white/5 p-1 border border-white/10 relative">
+                             <img src="${getAvatarUrl(m.name)}" class="w-full h-full rounded-lg" />
+                          </div>
+                          <div>
+                            <h4 class="text-[14px] font-black uppercase text-white/90 group-hover:text-white font-cinzel line-clamp-1">${m.name}</h4>
+                            <p class="text-[8px] font-black uppercase tracking-widest text-white/20 mt-0.5 italic">Registered Member</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-6 text-center">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                          <div class="w-1.5 h-1.5 rounded-full ${m.missedDays >= 3 ? "bg-neon-red" : "bg-neon-green"} ${glow}"></div>
+                          <span class="text-[8px] font-black uppercase tracking-widest ${m.missedDays >= 3 ? "text-neon-red" : "text-neon-green"}">${m.missedDays >= 3 ? "INACTIVE" : "ACTIVE"}</span>
+                        </div>
+                      </td>
+                      <td class="px-6 py-6 text-center">
+                        <span class="text-2xl font-black italic ${riskColor} b"><b>${m.missedDays}</b></span>
+                        <span class="text-[8px] font-black uppercase text-white/20 ml-1">Days</span>
+                      </td>
+                      <td class="px-8 py-6 text-right">
+                        <div class="inline-flex flex-col items-end">
+                           <span class="text-[10px] font-black tracking-[0.2em] ${riskColor} italic">${riskLabel}</span>
+                           <div class="w-12 h-1 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+                              <div class="h-full ${riskColor.replace('text-', 'bg-')}" style="width: ${Math.min(100, (m.missedDays/7)*100)}%"></div>
+                           </div>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div id="notice-generator-section" class="hidden glass-card-neon p-12 rounded-[2.5rem] border-white/10 bg-black/80 shadow-2xl animate-in slide-in-from-top-12 duration-500 overflow-hidden relative">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-12 relative z-10 text-white">
+              <div class="space-y-8">
                 <div>
-                  <p class="premium-label mb-8">Notice Logic</p>
-                  <div class="space-y-8">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white/20 mb-6">Notice Configuration</p>
+                  <div class="space-y-6">
                     <div>
-                      <label class="premium-label !text-[8px] mb-3 block opacity-40">Gap Threshold</label>
-                      <select id="inactivity-days" class="w-full bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-xs text-white font-black uppercase outline-none focus:border-white/20 transition-all font-rajdhani">
-                        <option value="1">1+ Day Missed</option>
-                        <option value="2">2+ Days Missed</option>
-                        <option value="3" selected>3+ Days Missed</option>
-                        <option value="5">5+ Days Missed</option>
-                        <option value="7">7+ Days Missed</option>
+                      <label class="text-[8px] font-black uppercase text-white/20 tracking-widest mb-2 block pl-1">Threshold</label>
+                      <select id="inactivity-days" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-[10px] text-white font-black uppercase outline-none focus:border-neon-cyan transition-all">
+                        <option value="1">1+ Day Gap</option>
+                        <option value="2">2+ Days Gap</option>
+                        <option value="3" selected>3+ Days Gap</option>
+                        <option value="5">5+ Days Gap</option>
+                        <option value="7">7+ Days Gap</option>
                       </select>
                     </div>
                     <div>
-                      <label class="premium-label !text-[8px] mb-3 block opacity-40">Protocol Mode</label>
-                      <select id="notice-type" class="w-full bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-xs text-white font-black uppercase outline-none focus:border-white/20 transition-all font-rajdhani">
-                        <option value="warning">Warning Protocol</option>
-                        <option value="critical">Critical Extraction</option>
-                        <option value="reminder">Standard Reminder</option>
+                      <label class="text-[8px] font-black uppercase text-white/20 tracking-widest mb-2 block pl-1">Mode</label>
+                      <select id="notice-type" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-[10px] text-white font-black uppercase outline-none focus:border-neon-purple transition-all">
+                        <option value="warning">Warning</option>
+                        <option value="critical">Critical</option>
+                        <option value="reminder">Reminder</option>
                       </select>
                     </div>
-                    <button id="generate-notice-btn" class="w-full py-6 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl">
-                      Generate Logic
+                    <button id="generate-notice-btn" class="w-full py-5 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-cyan hover:text-black transition-all shadow-lg">
+                      Generate Notice
                     </button>
                   </div>
                 </div>
-                
-                <div class="p-8 bg-white/[0.01] rounded-2xl border border-white/5" id="inactivity-stats">
-                   <!-- Stats will hydrate here -->
-                </div>
+                <div class="p-6 bg-white/5 rounded-2xl border border-white/10" id="inactivity-stats"></div>
               </div>
-
-              <div class="xl:col-span-2 relative group">
-                <div class="absolute top-6 right-6 z-10">
-                   <button id="copy-notice-btn" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-white border border-white/10 transition-all flex items-center gap-3">
-                      <i data-lucide="copy" class="w-3 h-3"></i>
-                      Copy Protocol
-                   </button>
-                </div>
-                <p class="premium-label mb-8">Output Matrix</p>
-                <textarea id="notice-output" readonly placeholder="System awaiting generation..." class="w-full h-[600px] bg-white/[0.01] border border-white/5 rounded-[2rem] p-10 text-white/60 font-mono text-xs leading-relaxed resize-none scrollbar-hide focus:outline-none"></textarea>
+              <div class="xl:col-span-2 space-y-4">
+                 <div class="flex justify-between items-center px-2">
+                    <p class="text-[10px] font-black uppercase text-white/20 tracking-widest">Compiler Output</p>
+                    <button id="copy-notice-btn" class="text-[8px] font-black uppercase text-neon-cyan hover:underline tracking-widest italic">Copy Protocol</button>
+                 </div>
+                 <textarea id="notice-output" readonly placeholder="Awaiting logic..." class="w-full h-[500px] bg-black/40 border border-white/5 rounded-3xl p-8 text-white/60 font-mono text-[12px] leading-relaxed resize-none focus:outline-none shadow-inner"></textarea>
               </div>
             </div>
           </div>
@@ -2121,10 +2167,9 @@ async function fetchLeaderboard() {
         const inactive = mappedMembers.filter(m => m.missedDays >= days);
         const stats = document.getElementById("inactivity-stats");
         if (stats) stats.innerHTML = `
-          <p class="premium-label !text-[7px] mb-3 opacity-30 text-center">Threshold Conflict Report</p>
           <div class="text-center">
-            <span class="text-4xl font-black italic font-cinzel text-white leading-none">${inactive.length}</span>
-            <p class="premium-label mt-2">Active Targets</p>
+            <span class="text-4xl font-black italic text-white font-cinzel">${inactive.length}</span>
+            <p class="text-[10px] font-black text-white/20 uppercase mt-2">Active Targets</p>
           </div>
         `;
       };
@@ -2137,24 +2182,37 @@ async function fetchLeaderboard() {
         (generateBtn as HTMLButtonElement).disabled = true;
         const notice = await generateInactivityNotice(parseInt(daysSelect.value), typeSelect.value as any, 100);
         textarea.value = notice;
-        generateBtn.textContent = "Generate Logic";
+        generateBtn.textContent = "Extract Output";
         (generateBtn as HTMLButtonElement).disabled = false;
       });
 
       copyBtn?.addEventListener("click", () => {
         textarea.select();
         document.execCommand("copy");
-        copyBtn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copied';
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = "SYNCED TO CLIPBOARD";
+        copyBtn.classList.add("text-white");
         setTimeout(() => {
-          copyBtn.innerHTML = '<i data-lucide="copy" class="w-3 h-3"></i> Copy Protocol';
-          refreshIcons();
+          copyBtn.textContent = originalText;
+          copyBtn.classList.remove("text-white");
         }, 2000);
       });
     }
 
-    refreshIcons();
+    (window as any).refreshIcons?.();
+    createIcons({ icons: { ChevronLeft } }); // Ensure specific icons load
   } catch (err: any) {
-    if (container) container.innerHTML = `<div class="p-20 text-center text-white/20 premium-label">Grid Sync Error: ${err.message}</div>`;
+    if (container) {
+      container.innerHTML = `
+        <div class="max-w-md mx-auto p-12 bg-neon-red/5 border border-neon-red/20 rounded-[2rem] text-center">
+          <i data-lucide="alert-triangle" class="w-12 h-12 text-neon-red mx-auto mb-6"></i>
+          <h3 class="text-xl font-black italic text-white font-cinzel mb-2">Neural Link Failure</h3>
+          <p class="text-white/40 text-[10px] font-black uppercase tracking-widest mb-6">${err.message || 'The matrix record stream is currently offline.'}</p>
+          <button onclick="render()" class="px-8 py-3 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest">Retry Connection</button>
+        </div>
+      `;
+      createIcons({ icons: { AlertTriangle } });
+    }
   }
 }
 
@@ -2256,12 +2314,17 @@ function renderMemberCardHtml(member: Member) {
         </div>
 
         <!-- Identity Section -->
-        <div class="flex-1 min-w-0 mb-6 relative z-10">
-          <h4 class="font-black italic uppercase tracking-tight text-white text-[14px] sm:text-[16px] leading-[1.3] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-3 min-h-[3.9em] mb-2">${member.name}</h4>
-          <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5">
-              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_10px_#00F5FF] animate-pulse"></span>
-              <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-neon-cyan/80 font-orbitron">${calculateLevel(member.total_points || 0)}</span>
+        <div class="flex items-center gap-4 mb-6 relative z-10">
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-0.5 relative shrink-0">
+             <img src="${getAvatarUrl(member.name)}" class="w-full h-full rounded-lg object-cover" />
+          </div>
+          <div class="min-w-0">
+            <h4 class="font-black italic uppercase tracking-tight text-white text-[13px] leading-[1.2] group-hover:text-neon-cyan transition-colors duration-500 font-cinzel break-words line-clamp-2 mb-1">${member.name}</h4>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/5">
+                <span class="w-1 h-1 rounded-full bg-neon-cyan shadow-[0_0_8px_#00F5FF]"></span>
+                <span class="text-[7px] font-black uppercase tracking-widest text-neon-cyan/80 font-orbitron">${calculateLevel(member.total_points || 0)}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2334,7 +2397,7 @@ function attachMemberCardEvents(data: Member[]) {
         await logAudit("MEMBER_DELETE", `Purged identity: ${name}`);
         membersCache = null;
         await fetchMembers();
-        showNotice("Success", `${name} purged from Matrix successfully.`, "success");
+        showNotice("Success", `${name} removed from database.`, "success");
       } catch (err: any) {
         console.error("CRITICAL PURGE ERROR:", err);
         alert("Operation Failed: " + (err.message || String(err)));
@@ -2613,24 +2676,42 @@ function attachMobileEvents() {
 
 async function fetchDashboardStats() {
   try {
-    const { count, error } = await supabase
+    const { data: allMembers, error: membersError } = await supabase
       .from("members")
-      .select("*", { count: "exact", head: true });
-    if (error) throw error;
+      .select("last_activity_date");
+    
+    if (membersError) throw membersError;
 
-    const memberCount = document.getElementById("stat-total-members");
-    if (memberCount)
-      memberCount.textContent = count !== null ? count.toString() : "0";
+    const totalCount = allMembers?.length || 0;
+    
+    const today = new Date().toISOString().split("T")[0];
+    const activeTodayCount = allMembers?.filter(m => m.last_activity_date === today).length || 0;
 
-    const systemPulse = document.getElementById("stat-system-load");
-    if (systemPulse) {
-      const now = new Date();
-      systemPulse.textContent = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+    const memberCountEl = document.getElementById("stat-total-members");
+    if (memberCountEl) memberCountEl.textContent = totalCount.toLocaleString();
+
+    const activeTodayEl = document.getElementById("stat-active-today");
+    if (activeTodayEl) activeTodayEl.textContent = activeTodayCount.toLocaleString();
+
+    const uptimeEl = document.getElementById("stat-sync-time");
+    if (uptimeEl) {
+      const { data: lastSync } = await supabase
+        .from("audit_trail")
+        .select("timestamp")
+        .ilike("action", "ACTIVITY_SYNC%")
+        .order("timestamp", { ascending: false })
+        .limit(1);
+      
+      if (lastSync && lastSync.length > 0) {
+        const diff = Date.now() - new Date(lastSync[0].timestamp).getTime();
+        const mins = Math.floor(diff / 60000);
+        uptimeEl.textContent = mins === 0 ? "Just Now" : mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
+      } else {
+        uptimeEl.textContent = "Stable";
+      }
     }
   } catch (err) {
     console.error("Failed to fetch dashboard stats:", err);
-    const memberCount = document.getElementById("stat-total-members");
-    if (memberCount) memberCount.textContent = "ERR";
   }
 }
 
@@ -2650,7 +2731,7 @@ function renderGapChecker() {
             </div>
             <div class="flex items-center gap-2 mb-2">
                 <div class="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_12px_#00F5FF] animate-pulse"></div>
-                <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em] font-orbitron italic">Wave Matrix Validation</p>
+                <p class="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em] font-orbitron italic">Member Gap Analysis</p>
             </div>
             <h1 class="text-5xl font-black italic tracking-tighter uppercase font-cinzel text-white">Gap Checker</h1>
         </header>

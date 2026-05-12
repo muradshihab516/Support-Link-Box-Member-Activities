@@ -19,6 +19,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "fuse.js": "^7.3.0",
+    "gender-guess": "^1.0.4",
     "html2canvas": "^1.4.1",
     "lucide": "^0.477.0",
     "tailwind-merge": "^3.5.0",
